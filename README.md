@@ -1,4 +1,6 @@
 # FluidSimulation
+Ulatra mega prosto best fluid siulator in the world.
+
 ## Getting started 😎😎😎
 Clone repository
 ```
@@ -9,3 +11,13 @@ Execute program
 stack build
 stack exec fluid-sim
 ```
+
+## File structure
+fluid-simulation/
+├── src/
+│   ├── Physics.hs    -- SPH calculations
+│   ├── Types.hs      -- Data types
+│   ├── Render.hs     -- Gloss visualization
+│   └── Main.hs       -- Entry point
+├── app.cabal         -- Build config
+└── stack.yaml        -- Stack config
