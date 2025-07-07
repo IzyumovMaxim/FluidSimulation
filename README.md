@@ -13,6 +13,7 @@ stack exec fluid-sim
 ```
 
 ## File structure
+```
 fluid-simulation/
 ├── src/
 │   ├── Physics.hs    -- SPH calculations
@@ -21,3 +22,4 @@ fluid-simulation/
 │   └── Main.hs       -- Entry point
 ├── app.cabal         -- Build config
 └── stack.yaml        -- Stack config
+```
