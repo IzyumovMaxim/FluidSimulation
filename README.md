@@ -1,7 +1,7 @@
 # FluidSimulation
 Ulatra mega prosto best fluid siulator in the world.
 
-## Getting started 😎😎😎
+## Getting started
 Clone repository
 ```
 git clone https://github.com/IzyumovMaxim/FluidSimulation
