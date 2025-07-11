@@ -11,12 +11,12 @@ import Graphics.Gloss.Interface.Pure.Game (play, Event(..), Key(..), KeyState(..
 initialWorld :: World
 initialWorld = 
   let w = World { particles = []           -- Start with empty particle list
-               , gravity   = (0, -9.8)     -- Earth-like gravity (m/s²)
-               , mass      = 0.2           -- Particle mass (kg)
+               , gravity   = (0, -20.0)     -- Earth-like gravity (m/s²)
+               , mass      = 3.0           -- Particle mass (kg)
                , rho0      = 1000          -- Rest density (kg/m³, water-like)
-               , stiffness = 2500          -- Pressure stiffness coefficient
-               , viscosity = 10            -- Viscosity coefficient
-               , h         = 15            -- Smoothing radius (affects neighbor search)
+               , stiffness = 3500          -- Pressure stiffness coefficient
+               , viscosity = 80            -- Viscosity coefficient
+               , h         = 11            -- Smoothing radius (affects neighbor search)
                , mousePos  = (0,0)         -- Current mouse position
                , mouseDown = False         -- Mouse button state
                }
