@@ -8,8 +8,6 @@ import Data.Maybe (fromMaybe)
 -- Spatial grid type
 type Grid = M.Map (Int, Int) [Particle]
 
-
-
 -- Build spatial grid
 buildGrid :: Float -> [Particle] -> Grid
 buildGrid hVal ps = M.fromListWith (++) $ map assignCell ps
