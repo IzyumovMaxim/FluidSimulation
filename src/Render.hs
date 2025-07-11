@@ -5,8 +5,9 @@ import Graphics.Gloss
 import Data.List (nub)
 import Physics (distance)
 
--- Blend particles as additive metaballs with concentric alpha layers
--- More fluid-like rendering with transparency
+-- | Render particle as metaball with concentric alpha layers
+-- Creates fluid-like appearance through additive blending and transparency
+-- Each particle is rendered as multiple concentric circles with decreasing opacity
 particleToPicture :: Float -> Particle -> Picture
 particleToPicture hVal p = translate x y $ pictures layers
   where
@@ -21,7 +22,9 @@ particleToPicture hVal p = translate x y $ pictures layers
       , let (r, g, b) = colorBase
       ]
 
--- Thicker surface lines for fluid appearance
+-- | Draw surface tension lines between nearby particles
+-- Creates mesh-like appearance showing fluid connectivity
+-- Helps visualize the fluid's internal structure and surface tension
 surfaceLines :: Float -> [Particle] -> [Picture]
 surfaceLines hVal ps = map linePic segments
   where
@@ -29,6 +32,8 @@ surfaceLines hVal ps = map linePic segments
     segments = nub [ (position p, position n) | p <- ps, n <- neighbors p ]
     linePic (p1, p2) = color (makeColor 0.0 0.7 1.0 0.4) $ thickLine 6 p1 p2  -- Thicker lines
 
+-- | Draw interactive cursor when mouse is pressed
+-- Shows the area of influence for user interaction
 drawCursor :: World -> Picture
 drawCursor world
   | mouseDown world = 
@@ -37,7 +42,9 @@ drawCursor world
       in translate x y $ color (makeColor 1 0 0 0.3) $ circleSolid radius
   | otherwise = Blank
 
--- Helper: draw thick rectangle between two points
+-- | Helper function: draw thick line between two points
+-- Creates rectangular shape connecting two points with specified thickness
+-- Used for surface tension lines and other thick line rendering
 thickLine :: Float -> Point -> Point -> Picture
 thickLine w (x1,y1) (x2,y2) = translate mx my $ rotate ang $ rectangleSolid len w
   where
@@ -47,7 +54,8 @@ thickLine w (x1,y1) (x2,y2) = translate mx my $ rotate ang $ rectangleSolid len 
     mx = (x1 + x2) / 2
     my = (y1 + y2) / 2
 
--- Display simulation parameters
+-- | Display current simulation parameters as on-screen text
+-- Provides real-time feedback about simulation state and controls
 drawParams :: World -> Picture
 drawParams world = 
   let params = [ "Gravity: " ++ show (gravity world)
@@ -73,7 +81,8 @@ drawParams world =
                 | (i, param) <- zip [0..] params ]
   in Pictures pictures
 
--- Full render combining blobs and surface
+-- | Main rendering function - combines all visual elements
+-- Renders the complete simulation scene with proper layering
 renderWorld :: World -> Picture
 renderWorld world = pictures [drawContainer, surface, blobs, cursor, drawParams world]
   where
@@ -83,6 +92,8 @@ renderWorld world = pictures [drawContainer, surface, blobs, cursor, drawParams 
     blobs   = pictures $ map (particleToPicture hVal) ps
     cursor  = drawCursor world
 
--- Draw container boundaries
+-- | Draw simulation container boundaries
+-- Shows the confined space where fluid simulation occurs
+-- Matches the boundary conditions in the physics module
 drawContainer :: Picture
 drawContainer = color white $ lineLoop [(-180,-180),(-180,180),(180,180),(180,-180)]
