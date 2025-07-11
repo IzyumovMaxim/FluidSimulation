@@ -6,32 +6,46 @@ import Render
 import Graphics.Gloss (Display(InWindow), black)
 import Graphics.Gloss.Interface.Pure.Game (play, Event(..), Key(..), KeyState(..), MouseButton(..), SpecialKey(..))
 
--- Initial world state
+-- | Initial world state with default physical parameters
+-- Creates a world with standard fluid properties similar to water
 initialWorld :: World
 initialWorld = 
-  let w = World { particles = [] 
-               , gravity   = (0, -9.8)
-               , mass      = 0.2
-               , rho0      = 1000
-               , stiffness = 2500
-               , viscosity = 10
-               , h         = 15
-               , mousePos  = (0,0)
-               , mouseDown = False
+  let w = World { particles = []           -- Start with empty particle list
+               , gravity   = (0, -9.8)     -- Earth-like gravity (m/s²)
+               , mass      = 0.2           -- Particle mass (kg)
+               , rho0      = 1000          -- Rest density (kg/m³, water-like)
+               , stiffness = 2500          -- Pressure stiffness coefficient
+               , viscosity = 10            -- Viscosity coefficient
+               , h         = 15            -- Smoothing radius (affects neighbor search)
+               , mousePos  = (0,0)         -- Current mouse position
+               , mouseDown = False         -- Mouse button state
                }
+  -- Generate initial particle distribution after world creation
   in w { particles = generateInitialParticles w }
 
--- Two-pass simulation update with spatial grid
+-- | Main simulation update function using two-pass SPH algorithm
+-- This implements the standard SPH method:
+-- Pass 1: Compute density and pressure for all particles
+-- Pass 2: Compute forces and update positions/velocities
 updateWorld :: Float -> World -> World
 updateWorld _ world =
   let allParticles = particles world
+      -- Build spatial grid for efficient neighbor finding
       grid = buildGrid (h world) allParticles
+
+      -- First pass: compute density and pressure for each particle
       ps1 = map (computeDensityPressure world grid) allParticles
+      
+      -- Create temporary world state with updated densities/pressures
       tempWorld = world { particles = ps1 }
+      
+      -- Second pass: compute forces and update positions/velocities
+      -- Uses the density/pressure values computed in the first pass
       ps2 = map (updatePositionVelocity tempWorld grid) ps1
   in world { particles = ps2 }
 
--- Handle events
+-- | Event handler for user input
+-- Supports mouse interaction and keyboard controls for simulation parameters
 eventHandler :: Event -> World -> World
 
 -- Mouse events
@@ -94,6 +108,8 @@ eventHandler (EventKey (Char 'l') Down _ _) world =
 -- Ignore other events
 eventHandler _ world = world
 
+-- | Main entry point
+-- Sets up the Gloss window and starts the simulation loop
 main :: IO ()
 main = do
   let particleCount = length (particles initialWorld)
