@@ -47,9 +47,35 @@ thickLine w (x1,y1) (x2,y2) = translate mx my $ rotate ang $ rectangleSolid len 
     mx = (x1 + x2) / 2
     my = (y1 + y2) / 2
 
+-- Display simulation parameters
+drawParams :: World -> Picture
+drawParams world = 
+  let params = [ "Gravity: " ++ show (gravity world)
+               , "Mass: " ++ show (mass world)
+               , "Rest density: " ++ show (rho0 world)
+               , "Stiffness: " ++ show (stiffness world)
+               , "Viscosity: " ++ show (viscosity world)
+               , "Smoothing radius: " ++ show (h world)
+               , "Controls:"
+               , "  R - Reset simulation"
+               , "  Arrows - Gravity"
+               , "  T/G - Mass"
+               , "  Y/H - Density"
+               , "  U/J - Stiffness"
+               , "  I/K - Viscosity"
+               , "  O/L - Smoothing radius"
+               ]
+      yStart = 350   -- Top of screen
+      xStart = -390  -- Left edge
+      lineHeight = 20
+      pictures = [ translate xStart (yStart - fromIntegral (i * lineHeight)) $ 
+                  scale 0.1 0.1 $ color white $ text param 
+                | (i, param) <- zip [0..] params ]
+  in Pictures pictures
+
 -- Full render combining blobs and surface
 renderWorld :: World -> Picture
-renderWorld world = pictures [drawContainer, surface, blobs, cursor]
+renderWorld world = pictures [drawContainer, surface, blobs, cursor, drawParams world]
   where
     ps   = particles world
     hVal = h world
