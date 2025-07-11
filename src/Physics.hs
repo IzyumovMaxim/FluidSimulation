@@ -2,6 +2,43 @@ module Physics where
 
 import Types
 import Data.List (foldl')
+import qualified Data.Map.Strict as M
+import Data.Maybe (fromMaybe)
+
+-- Spatial grid type
+type Grid = M.Map (Int, Int) [Particle]
+
+
+
+-- Build spatial grid
+buildGrid :: Float -> [Particle] -> Grid
+buildGrid hVal ps = M.fromListWith (++) $ map assignCell ps
+  where
+    cellSize = hVal * 1.2
+    assignCell p = 
+      let (x, y) = position p
+          i = floor (x / cellSize)
+          j = floor (y / cellSize)
+      in ((i, j), [p])
+
+-- Get neighbors using grid
+getNeighborsGrid :: Grid -> Particle -> Float -> [Particle]
+getNeighborsGrid grid p hVal = 
+  let (x, y) = position p
+      cellSize = hVal * 1.2
+      i0 = floor (x / cellSize)
+      j0 = floor (y / cellSize)
+      cells = [(i0+dx, j0+dy) | dx <- [-1,0,1], dy <- [-1,0,1]]
+      candidates = concatMap (\k -> fromMaybe [] (M.lookup k grid)) cells
+  in filter (\n -> distance p n < hVal) candidates
+
+-- Update computeDensityPressure to use grid
+computeDensityPressure :: World -> Grid -> Particle -> Particle
+computeDensityPressure world grid p = 
+  let neighbors = getNeighborsGrid grid p (h world)
+      rho = max 1.0 (computeDensity p neighbors (mass world) (h world))
+      pVal = stiffness world * (rho - rho0 world)
+  in p { density = rho, pressure = pVal }
 
 -- Poly6 kernel for density computation
 wPoly6 :: Float -> Float -> Float
@@ -49,20 +86,30 @@ getNeighbors :: Particle -> [Particle] -> Float -> [Particle]
 getNeighbors p allParticles hVal = 
   filter (\n -> distance p n < hVal) allParticles
 
--- Compute density and pressure only
-computeDensityPressure :: World -> Particle -> Particle
-computeDensityPressure world p = 
-  let neighbors = getNeighbors p (particles world) (h world)
-      rho = max 1.0 (computeDensity p neighbors (mass world) (h world))
-      pVal = stiffness world * (rho - rho0 world)
-  in p { density = rho, pressure = pVal }
+-- Cursor interaction force
+cursorForce :: World -> Particle -> Vector2
+cursorForce world p
+  | not (mouseDown world) = (0, 0)
+  | otherwise =
+      let (mx, my) = mousePos world
+          (px, py) = position p
+          dx = px - mx
+          dy = py - my
+          r = sqrt (dx*dx + dy*dy)
+          cursorRadius = 50  -- Area of influence
+          maxForce = 800     -- Strength of interaction
+          
+      in if r < cursorRadius && r > 0
+         then let factor = maxForce * (1 - r/cursorRadius) / r
+              in (dx * factor, dy * factor)
+         else (0, 0)
 
--- Update position and velocity using precomputed densities/pressures
-updatePositionVelocity :: World -> Particle -> Particle
-updatePositionVelocity world p = 
-  let neighbors = getNeighbors p (particles world) (h world)
+-- Update position and velocity
+updatePositionVelocity :: World -> Grid -> Particle -> Particle
+updatePositionVelocity world grid p = 
+  let neighbors = getNeighborsGrid grid p (h world)
       
-      -- Pressure force (uses precomputed pressures)
+      -- Pressure force
       fPressure = foldl' addVec (0,0) $ 
         [ let rVec = vecSub (position p) (position n)
               r = vecMagnitude rVec
@@ -84,8 +131,11 @@ updatePositionVelocity world p =
         , n /= p
         ]
       
+      -- Cursor interaction
+      fCursor = cursorForce world p
+      
       -- Total force
-      fTotal = vecAdd (vecAdd fPressure fViscosity) 
+      fTotal = vecAdd (vecAdd (vecAdd fPressure fViscosity) fCursor)
                      (vecScale (mass world) (gravity world))
       
       dt = 0.03
@@ -93,21 +143,22 @@ updatePositionVelocity world p =
       newVel = vecAdd (velocity p) (vecScale dt acceleration)
       newPos = vecAdd (position p) (vecScale dt newVel)
       
-      -- Apply damping to velocity for stability
+      -- Apply damping
       dampedVel = vecScale 0.99 newVel
       
-      -- Boundary conditions with collision response
+      -- Boundary conditions
       (x,y) = newPos
       (vx, vy) = dampedVel
       
-      -- Bounce off walls
-      (boundedX, newVx) = if x < -180 then (-180, abs vx * 0.5) 
-                         else if x > 180 then (180, -abs vx * 0.5)
-                         else (x, vx)
+      (boundedX, newVx) 
+        | x < -180 = (-180, abs vx * 0.5) 
+        | x > 180  = (180, -abs vx * 0.5)
+        | otherwise = (x, vx)
       
-      (boundedY, newVy) = if y < -180 then (-180, abs vy * 0.5)
-                         else if y > 180 then (180, -abs vy * 0.5)
-                         else (y, vy)
+      (boundedY, newVy) 
+        | y < -180 = (-180, abs vy * 0.5)
+        | y > 180  = (180, -abs vy * 0.5)
+        | otherwise = (y, vy)
       
       boundedPos = (boundedX, boundedY)
       finalVel = (newVx, newVy)

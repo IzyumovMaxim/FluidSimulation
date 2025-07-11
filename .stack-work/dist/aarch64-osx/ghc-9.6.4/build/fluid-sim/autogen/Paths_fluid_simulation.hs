@@ -47,7 +47,7 @@ getBinDir, getLibDir, getDynLibDir, getDataDir, getLibexecDir, getSysconfDir :: 
 
 bindir, libdir, dynlibdir, datadir, libexecdir, sysconfdir :: FilePath
 bindir     = "/Users/maximizyumov/Haskell_project/.stack-work/install/aarch64-osx/8ed3afc46f2d0636aeca0cfa61e0a20943e1a20bbad83650f5a2b193cbfc620b/9.6.4/bin"
-libdir     = "/Users/maximizyumov/Haskell_project/.stack-work/install/aarch64-osx/8ed3afc46f2d0636aeca0cfa61e0a20943e1a20bbad83650f5a2b193cbfc620b/9.6.4/lib/aarch64-osx-ghc-9.6.4/fluid-simulation-0.1.0.0-2Zp6BgMfG4aCkrTQzjaiVG-fluid-sim"
+libdir     = "/Users/maximizyumov/Haskell_project/.stack-work/install/aarch64-osx/8ed3afc46f2d0636aeca0cfa61e0a20943e1a20bbad83650f5a2b193cbfc620b/9.6.4/lib/aarch64-osx-ghc-9.6.4/fluid-simulation-0.1.0.0-87u4eYA73C0DRh1SEzvByv-fluid-sim"
 dynlibdir  = "/Users/maximizyumov/Haskell_project/.stack-work/install/aarch64-osx/8ed3afc46f2d0636aeca0cfa61e0a20943e1a20bbad83650f5a2b193cbfc620b/9.6.4/lib/aarch64-osx-ghc-9.6.4"
 datadir    = "/Users/maximizyumov/Haskell_project/.stack-work/install/aarch64-osx/8ed3afc46f2d0636aeca0cfa61e0a20943e1a20bbad83650f5a2b193cbfc620b/9.6.4/share/aarch64-osx-ghc-9.6.4/fluid-simulation-0.1.0.0"
 libexecdir = "/Users/maximizyumov/Haskell_project/.stack-work/install/aarch64-osx/8ed3afc46f2d0636aeca0cfa61e0a20943e1a20bbad83650f5a2b193cbfc620b/9.6.4/libexec/aarch64-osx-ghc-9.6.4/fluid-simulation-0.1.0.0"

@@ -6,24 +6,36 @@ import Data.List (nub)
 import Physics (distance)
 
 -- Blend particles as additive metaballs with concentric alpha layers
+-- More fluid-like rendering with transparency
 particleToPicture :: Float -> Particle -> Picture
 particleToPicture hVal p = translate x y $ pictures layers
   where
     (x, y) = position p
     densityRatio = min 1.0 (density p / 2000)
-    baseAlpha = 0.2 + densityRatio * 0.4
-    radii = [hVal * 0.8, hVal * 0.5, hVal * 0.3]
-    alphas = [baseAlpha, baseAlpha*0.6, baseAlpha*0.3]
-    layers = [ color (makeColor 0.0 (0.5 + densityRatio*0.5) 1.0 a) $ circleSolid r
-             | (r, a) <- zip radii alphas ]
+    -- Softer color gradient
+    colorBase = (0.0, 0.5 + densityRatio*0.5, 1.0)
+    -- Larger, softer particles
+    layers = 
+      [ color (makeColor r g b (0.3 * a)) $ circleSolid (hVal * size)
+      | (size, a) <- [(0.8, 1.0), (1.0, 0.6), (1.2, 0.3)]
+      , let (r, g, b) = colorBase
+      ]
 
--- Create soft surface mesh by drawing thick line segments between close particles
+-- Thicker surface lines for fluid appearance
 surfaceLines :: Float -> [Particle] -> [Picture]
 surfaceLines hVal ps = map linePic segments
   where
-    neighbors p = [ n | n <- ps, n /= p, distance p n < hVal * 0.7 ]
+    neighbors p = [ n | n <- ps, n /= p, distance p n < hVal * 1.0 ]  -- Increased range
     segments = nub [ (position p, position n) | p <- ps, n <- neighbors p ]
-    linePic (p1, p2) = color (makeColor 0.0 0.7 1.0 0.3) $ thickLine 4 p1 p2
+    linePic (p1, p2) = color (makeColor 0.0 0.7 1.0 0.4) $ thickLine 6 p1 p2  -- Thicker lines
+
+drawCursor :: World -> Picture
+drawCursor world
+  | mouseDown world = 
+      let (x, y) = mousePos world
+          radius = 50
+      in translate x y $ color (makeColor 1 0 0 0.3) $ circleSolid radius
+  | otherwise = Blank
 
 -- Helper: draw thick rectangle between two points
 thickLine :: Float -> Point -> Point -> Picture
@@ -37,12 +49,13 @@ thickLine w (x1,y1) (x2,y2) = translate mx my $ rotate ang $ rectangleSolid len 
 
 -- Full render combining blobs and surface
 renderWorld :: World -> Picture
-renderWorld world = pictures [drawContainer, surface, blobs]
+renderWorld world = pictures [drawContainer, surface, blobs, cursor]
   where
     ps   = particles world
     hVal = h world
     surface = pictures $ surfaceLines hVal ps
     blobs   = pictures $ map (particleToPicture hVal) ps
+    cursor  = drawCursor world
 
 -- Draw container boundaries
 drawContainer :: Picture

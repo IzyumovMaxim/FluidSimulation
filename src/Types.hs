@@ -17,4 +17,6 @@ data World = World
   , stiffness :: Float  -- Pressure coefficient
   , viscosity :: Float  -- Viscosity coefficient
   , h         :: Float  -- Smoothing radius
+  , mousePos  :: Vector2  -- Add mouse position
+  , mouseDown :: Bool     -- Add mouse state
   }
