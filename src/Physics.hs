@@ -49,21 +49,28 @@ getNeighbors :: Particle -> [Particle] -> Float -> [Particle]
 getNeighbors p allParticles hVal = 
   filter (\n -> distance p n < hVal) allParticles
 
-updateParticle :: World -> Particle -> Particle
-updateParticle world p = 
+-- Compute density and pressure only
+computeDensityPressure :: World -> Particle -> Particle
+computeDensityPressure world p = 
   let neighbors = getNeighbors p (particles world) (h world)
       rho = max 1.0 (computeDensity p neighbors (mass world) (h world))
       pVal = stiffness world * (rho - rho0 world)
+  in p { density = rho, pressure = pVal }
+
+-- Update position and velocity using precomputed densities/pressures
+updatePositionVelocity :: World -> Particle -> Particle
+updatePositionVelocity world p = 
+  let neighbors = getNeighbors p (particles world) (h world)
       
-      -- Pressure force
+      -- Pressure force (uses precomputed pressures)
       fPressure = foldl' addVec (0,0) $ 
         [ let rVec = vecSub (position p) (position n)
               r = vecMagnitude rVec
               pressureGrad = spikyGrad rVec (h world)
-              pressureMag = if density n > 0 then (pVal + pressure n) / (2 * density n) else 0
+              pressureMag = if density n > 0 then (pressure p + pressure n) / (2 * density n) else 0
           in vecScale (mass world * pressureMag) pressureGrad
         | n <- neighbors
-        , n /= p  -- Don't include self
+        , n /= p
         ]
       
       -- Viscosity force
@@ -74,14 +81,14 @@ updateParticle world p =
               viscForce = if density n > 0 then viscLap / density n else 0
           in vecScale (viscosity world * mass world * viscForce) vDiff
         | n <- neighbors
-        , n /= p  -- Don't include self
+        , n /= p
         ]
       
       -- Total force
       fTotal = vecAdd (vecAdd fPressure fViscosity) 
                      (vecScale (mass world) (gravity world))
       
-      dt = 0.03  -- Smaller time step for stability
+      dt = 0.03
       acceleration = vecScale (1 / mass world) fTotal
       newVel = vecAdd (velocity p) (vecScale dt acceleration)
       newPos = vecAdd (position p) (vecScale dt newVel)
@@ -105,8 +112,5 @@ updateParticle world p =
       boundedPos = (boundedX, boundedY)
       finalVel = (newVx, newVy)
       
-  in p { position = boundedPos
-       , velocity = finalVel
-       , density = rho
-       , pressure = pVal }
+  in p { position = boundedPos, velocity = finalVel }
   where addVec = vecAdd
