@@ -8,6 +8,7 @@ git clone https://github.com/IzyumovMaxim/FluidSimulation
 ```
 Execute program
 ```
+cd FluidSimulation
 stack build
 stack exec fluid-sim
 ```
