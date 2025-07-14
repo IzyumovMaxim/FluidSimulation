@@ -4,7 +4,8 @@ import Types
 import Physics
 import Render
 import Graphics.Gloss (Display(InWindow), black)
-import Graphics.Gloss.Interface.Pure.Game (play, Event(..), Key(..), KeyState(..), MouseButton(..), SpecialKey(..))
+import Graphics.Gloss.Interface.Pure.Game (play, Event(..), Key(..), KeyState(..), MouseButton(..), SpecialKey(..), Modifiers(..))
+import Data.Bits (Bits(shiftL))
 
 -- | Initial world state with default physical parameters
 -- Creates a world with standard fluid properties similar to water
@@ -48,6 +49,7 @@ updateWorld _ world =
 -- Supports mouse interaction and keyboard controls for simulation parameters
 eventHandler :: Event -> World -> World
 
+
 -- Mouse events
 eventHandler (EventMotion pos) world = 
   world { mousePos = pos }
@@ -58,52 +60,76 @@ eventHandler (EventKey (MouseButton button) Down _ pos) world
 eventHandler (EventKey (MouseButton button) Up _ pos) world
   | button == LeftButton = world { mouseDown = False, mousePos = pos }
 
--- Key events
+
+-- Restart simulation
 eventHandler (EventKey (Char 'r') Down _ _) world = 
   world { particles = generateInitialParticles world }
 
 eventHandler (EventKey (Char 'R') Down _ _) world = 
   world { particles = generateInitialParticles world }
 
--- Gravity control
-eventHandler (EventKey (SpecialKey KeyUp) Down _ _) world = 
-  world { gravity = (gx, gy + 0.5) } where (gx, gy) = gravity world
-eventHandler (EventKey (SpecialKey KeyDown) Down _ _) world = 
-  world { gravity = (gx, gy - 0.5) } where (gx, gy) = gravity world
-eventHandler (EventKey (SpecialKey KeyRight) Down _ _) world = 
-  world { gravity = (gx + 0.5, gy) } where (gx, gy) = gravity world
-eventHandler (EventKey (SpecialKey KeyLeft) Down _ _) world = 
-  world { gravity = (gx - 0.5, gy) } where (gx, gy) = gravity world
 
--- Mass control
-eventHandler (EventKey (Char 't') Down _ _) world = 
-  world { mass = mass world + 0.1 }
-eventHandler (EventKey (Char 'g') Down _ _) world = 
-  world { mass = max 0.1 (mass world - 0.1) }
 
--- Density control
-eventHandler (EventKey (Char 'y') Down _ _) world = 
-  world { rho0 = rho0 world + 10 }
-eventHandler (EventKey (Char 'h') Down _ _) world = 
-  world { rho0 = max 1 (rho0 world - 10) }
+-- Gravity control with Shift modifier
+eventHandler (EventKey (SpecialKey KeyUp) Down mods _) world = 
+  let step = if shift mods == Down then 5.0 else 0.5
+  in world { gravity = (gx, gy + step) } where (gx, gy) = gravity world
 
--- Stiffness control
-eventHandler (EventKey (Char 'u') Down _ _) world = 
-  world { stiffness = stiffness world + 100 }
-eventHandler (EventKey (Char 'j') Down _ _) world = 
-  world { stiffness = max 1 (stiffness world - 100) }
+eventHandler (EventKey (SpecialKey KeyDown) Down mods _) world = 
+  let step = if shift mods == Down then 5.0 else 0.5
+  in world { gravity = (gx, gy - step) } where (gx, gy) = gravity world
 
--- Viscosity control
-eventHandler (EventKey (Char 'i') Down _ _) world = 
-  world { viscosity = viscosity world + 1 }
-eventHandler (EventKey (Char 'k') Down _ _) world = 
-  world { viscosity = max 0 (viscosity world - 1) }
+eventHandler (EventKey (SpecialKey KeyRight) Down mods _) world = 
+  let step = if shift mods == Down then 5.0 else 0.5
+  in world { gravity = (gx + step, gy) } where (gx, gy) = gravity world
 
--- Smoothing radius control
-eventHandler (EventKey (Char 'o') Down _ _) world = 
-  world { h = h world + 1 }
-eventHandler (EventKey (Char 'l') Down _ _) world = 
-  world { h = max 5 (h world - 1) }
+eventHandler (EventKey (SpecialKey KeyLeft) Down mods _) world = 
+  let step = if shift mods == Down then 5.0 else 0.5
+  in world { gravity = (gx - step, gy) } where (gx, gy) = gravity world
+
+
+-- Для буквенных клавиш - добавляем обработку как строчных, так и заглавных
+eventHandler (EventKey (Char c) Down mods _) world
+  | c `elem` ['t','T'] =  -- Mass increase
+      let step = if shift mods == Down then 1.0 else 0.1
+      in world { mass = mass world + step }
+  
+  | c `elem` ['g','G'] =  -- Mass decrease
+      let step = if shift mods == Down then 1.0 else 0.1
+      in world { mass = max 0.1 (mass world - step) }
+  
+  | c `elem` ['y','Y'] =  -- Density increase
+      let step = if shift mods == Down then 100 else 10
+      in world { rho0 = rho0 world + step }
+  
+  | c `elem` ['h','H'] =  -- Density decrease
+      let step = if shift mods == Down then 100 else 10
+      in world { rho0 = max 1 (rho0 world - step) }
+  
+  | c `elem` ['u','U'] =  -- Stiffness increase
+      let step = if shift mods == Down then 1000 else 100
+      in world { stiffness = stiffness world + step }
+  
+  | c `elem` ['j','J'] =  -- Stiffness decrease
+      let step = if shift mods == Down then 1000 else 100
+      in world { stiffness = max 1 (stiffness world - step) }
+  
+  | c `elem` ['i','I'] =  -- Viscosity increase
+      let step = if shift mods == Down then 10 else 1
+      in world { viscosity = viscosity world + step }
+  
+  | c `elem` ['k','K'] =  -- Viscosity decrease
+      let step = if shift mods == Down then 10 else 1
+      in world { viscosity = max 0 (viscosity world - step) }
+  
+  | c `elem` ['o','O'] =  -- Smoothing radius increase
+      let step = if shift mods == Down then 10 else 1
+      in world { h = h world + step }
+  
+  | c `elem` ['l','L'] =  -- Smoothing radius decrease
+      let step = if shift mods == Down then 10 else 1
+      in world { h = max 5 (h world - step) }
+  
 
 -- Ignore other events
 eventHandler _ world = world
@@ -114,15 +140,6 @@ main :: IO ()
 main = do
   let particleCount = length (particles initialWorld)
   putStrLn $ "Starting simulation with " ++ show particleCount ++ " particles"
-  putStrLn "Controls:"
-  putStrLn "  R - Reset simulation"
-  putStrLn "  Arrow keys - Control gravity"
-  putStrLn "  T/G - Increase/Decrease mass"
-  putStrLn "  Y/H - Increase/Decrease density"
-  putStrLn "  U/J - Increase/Decrease stiffness"
-  putStrLn "  I/K - Increase/Decrease viscosity"
-  putStrLn "  O/L - Increase/Decrease smoothing radius"
-  putStrLn "Click and drag to interact with the fluid"
   
   play
     (InWindow "SPH Fluid" (800, 800) (800, 800))
