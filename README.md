@@ -15,7 +15,7 @@ Execute program
 ```
 cd FluidSimulation
 stack build
-stack exec fluid-sim
+stack exec sph-fluid
 ```
 
 ## File structure
