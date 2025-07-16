@@ -18,14 +18,6 @@ particleToPicture hVal p = translate x y $ pictures layers
       , let (r, g, b) = colorBase
       ]
 
--- | Draw surface tension lines between nearby particles
-surfaceLines :: Float -> [Particle] -> [Picture]
-surfaceLines hVal ps = map linePic segments
-  where
-    neighbors p = [ n | n <- ps, n /= p, distance p n < hVal * 1.0 ]
-    segments = nub [ (position p, position n) | p <- ps, n <- neighbors p ]
-    linePic (p1, p2) = color (makeColor 0.0 0.7 1.0 0.4) $ thickLine 6 p1 p2
-
 -- | Draw interactive cursor when mouse is pressed
 drawCursor :: World -> Picture
 drawCursor world
@@ -35,15 +27,6 @@ drawCursor world
       in translate x y $ color (makeColor 1 0 0 0.3) $ circleSolid radius
   | otherwise = Blank
 
--- | Helper function: draw thick line between two points
-thickLine :: Float -> Point -> Point -> Picture
-thickLine w (x1,y1) (x2,y2) = translate mx my $ rotate ang $ rectangleSolid len w
-  where
-    dx = x2 - x1; dy = y2 - y1
-    len = sqrt (dx*dx + dy*dy)
-    ang = atan2 dy dx * 180 / pi
-    mx = (x1 + x2) / 2
-    my = (y1 + y2) / 2
 
 -- | Display current simulation parameters as on-screen text
 drawParams :: World -> Picture
@@ -75,11 +58,10 @@ drawParams world =
 
 -- | Main rendering function - combines all visual elements
 renderWorld :: World -> Picture
-renderWorld world = pictures [drawContainer, surface, blobs, cursor, drawParams world]
+renderWorld world = pictures [drawContainer, blobs, cursor, drawParams world]
   where
     ps = particles world
     hVal = h world
-    surface = pictures $ surfaceLines hVal ps
     blobs = pictures $ map (particleToPicture hVal) ps
     cursor = drawCursor world
 

@@ -15,4 +15,8 @@ executable sph-fluid
                  parallel >=3.2,
                  deepseq >=1.4
   default-language: Haskell2010
-  ghc-options: -O2 -threaded -rtsopts -with-rtsopts=-N
+  ghc-options:
+    -O2
+    -threaded
+    -rtsopts       
+    -fprof-auto  

@@ -1,10 +1,10 @@
 /Users/maximizyumov/FluidSimulation/fluid-simulation.cabal:
-  hash: 9a12c2f1cdf81401eae3874c9a6029a3de81a8fd71131e7edc97ae5db3988972
+  hash: 25685b81f09f6471a833231941b474be26ffae8a7bcd4227c611a8e79115d8e3
 /Users/maximizyumov/FluidSimulation/src/Main.hs:
-  hash: f103eb4f16794f6ed249db82886a3a179414e47a6dc75ad270fc936a44a368e9
+  hash: d641f23a81c0eab475bf6da56988da4382638226b876aa20795ec5a28e040e98
 /Users/maximizyumov/FluidSimulation/src/Physics.hs:
   hash: 5c0edb1b83b8e5a73c499f4fed1ad139681ba24f65f894a2178063b7801c9837
 /Users/maximizyumov/FluidSimulation/src/Render.hs:
-  hash: d1d351f477f37d9315b840330bb07fee71051bef758d33855fd69ba16216cd33
+  hash: 9bbaee318c0b85a78b748c8f86f4f7f61de63f3300f4829b3926cf170305b166
 /Users/maximizyumov/FluidSimulation/src/Types.hs:
   hash: a3ba1f38133d179e11b2b6345bbd54bc6ab0527e6f4128e23d78ab82cd3bc23c
