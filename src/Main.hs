@@ -27,6 +27,8 @@ initialWorld =
                , mousePos  = (0,0)
                , mouseDown = False
                , scene     = Square
+               , windmillAngle = 0
+               , windmillSpeed = 1.5
                -- New puzzle game fields
                , currentLevel = Nothing
                , gameState = Playing
@@ -37,10 +39,10 @@ initialWorld =
 
 -- | Optimized simulation update with puzzle game logic
 updateWorld :: Float -> World -> World
-updateWorld _ world =
+updateWorld dt world =
   case scene world of
     PuzzleLevel -> updatePuzzleWorld world
-    _ -> updateFluidWorld world
+    _ -> updateFluidWorld dt world
 
 -- | Update puzzle game world
 updatePuzzleWorld :: World -> World
@@ -57,19 +59,23 @@ updatePuzzleWorld world =
       worldWithParticles = tempWorld { particles = V.toList ps2 }
       worldWithCollectibles = updateCollectibles worldWithParticles
       finalWorld = updateGameState worldWithCollectibles
-      
   in finalWorld
 
 -- | Update regular fluid simulation world
-updateFluidWorld :: World -> World
-updateFluidWorld world =
-  let particleVector = V.fromList (particles world)
+updateFluidWorld :: Float -> World -> World
+updateFluidWorld dt world =
+  let -- Обновляем угол мельницы на основе времени и скорости
+      newAngle = windmillAngle world + windmillSpeed world * dt
+      
+      -- Обновляем частицы
+      particleVector = V.fromList (particles world)
       grid = buildOptimizedGrid (h world) particleVector
       ps1 = computeDensityPressureParallel world grid particleVector
       tempWorld = world { particles = V.toList ps1 }
       tempVector = V.fromList (particles tempWorld)
       ps2 = updatePositionVelocityParallel tempWorld grid tempVector
-  in world { particles = V.toList ps2 }
+  in world { particles = V.toList ps2, windmillAngle = newAngle }
+
 
 -- | Enhanced event handler with puzzle game controls
 eventHandler :: Event -> World -> World
@@ -110,6 +116,10 @@ eventHandler (EventKey (Char '3') Down _ _) world =
   in newWorld { particles = generateInitialParticles newWorld }
 
 eventHandler (EventKey (Char '4') Down _ _) world = 
+  let newWorld = world { scene = Windmill }
+  in newWorld { particles = generateInitialParticles newWorld }
+  
+eventHandler (EventKey (Char '5') Down _ _) world = 
   initializePuzzleLevel world
 
 -- Physics parameter controls (only for non-puzzle modes)
@@ -178,6 +188,12 @@ main :: IO ()
 main = do
   let particleCount = length (particles initialWorld)
   putStrLn $ "Starting 'Where's My Water' SPH Game with " ++ show particleCount ++ " particles"
+  putStrLn "Optimizations enabled:"
+  putStrLn "  - Parallel computation (4 cores)"
+  putStrLn "  - Vectorized operations"
+  putStrLn "  - Optimized spatial grid"
+  putStrLn "  - Reduced memory allocations"
+  putStrLn ""
   putStrLn "Game modes:"
   putStrLn "  1 - Square fluid simulation"
   putStrLn "  2 - Hourglass fluid simulation"
@@ -205,7 +221,7 @@ main = do
   play
     (InWindow "Where's My Water - SPH Game" (800, 800) (100, 100))
     black  
-    60  -- Increased FPS for better game feel
+    300
     initialWorld
     renderWorld
     eventHandler

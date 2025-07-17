@@ -181,7 +181,9 @@ drawParams world =
                    , " 1 - Square scene"
                    , " 2 - Hourglass scene"
                    , " 3 - Ball scene"
-                   , " 4 - Puzzle level"
+                   , " 4 - Windmill scene"
+                   , " 5 - Puzzle level!"
+
                    ]
           yStart = 350
           xStart = -390

@@ -358,7 +358,9 @@ applyBoundaryConditions world newPos newVel =
             | y < -180 = (-180, abs vy * 0.5)
             | y > 180  = (180, -abs vy * 0.5)
             | otherwise = (y, vy)
-      in ((boundedX, boundedY), (newVx, newVy))
+          -- Обработка столкновения с мельницей
+          (millX, millY, millVx, millVy) = checkMillCollision world (boundedX, boundedY) (newVx, newVy)
+      in ((millX, millY), (millVx, millVy))
 
 
 
