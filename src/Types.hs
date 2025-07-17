@@ -1,5 +1,8 @@
 module Types where
 
+import Graphics.Gloss.Data.Picture
+
+
 -- | 2D vector type for positions, velocities, and forces
 type Vector2 = (Float, Float)
 
@@ -67,9 +70,11 @@ data World = World
   , windmillSpeed :: Float 
     -- Puzzle game fields
   , currentLevel :: Maybe Level -- Current puzzle level
+  , initialLevel :: Maybe Level -- Stored initial level state
   , gameState :: GameState     -- Current game state
   , collectedStars :: Int      -- Number of stars collected
   , waterInGoal :: Bool        -- Is water reaching Swampy?
+  , swampyImg  :: Picture       -- Swampy !!!
   }
 
 -- | Check if point is inside hourglass shape
@@ -182,28 +187,28 @@ setBlockAt level (gx, gy) newBlock =
 sampleLevel :: Level
 sampleLevel = Level
   { levelGrid = 
-      [ [Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone]
-      , [Stone, WaterSource, WaterSource, WaterSource, WaterSource, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone]
-      , [Stone, WaterSource, WaterSource, WaterSource, WaterSource, Dirt, Dirt, Dirt, Dirt, Stone, Stone, Stone, Stone, Stone, Stone, Stone]
-      , [Stone, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Stone]
-      , [Stone, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Stone]
-      , [Stone, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Stone]
-      , [Stone, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Stone]
+      [ [ Goal, Goal, Goal, Goal, Goal, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone]
+      , [ Goal, Goal, Goal, Goal, Goal, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone]
+      , [ Goal, Goal, Goal, Goal, Goal, Dirt, Dirt, Dirt, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone]
+      , [ Goal, Goal, Goal, Goal, Goal, Dirt, Dirt, Dirt, Dirt, Stone, Stone, Stone, Stone, Stone, Stone, Stone]
+      , [Stone, Stone, Stone, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt,  Stone, Stone, Stone, Stone, Stone]
+      , [Stone, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Stone, Stone, Stone, Stone]
+      , [Stone, Stone, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt,  Stone, Stone, Stone, Stone, Stone]
+      , [Stone, Stone, Stone, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Stone, Stone, Stone, Stone, Stone, Stone]
       , [Stone, Stone, Stone, Stone, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Stone, Stone, Stone, Stone]
-      , [Stone, Stone, Stone, Stone, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Stone, Stone, Stone, Stone]
-      , [Stone, Stone, Stone, Stone, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Stone, Stone, Stone, Stone]
-      , [Stone,  Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Stone]
-      , [Stone,  Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Stone]
-      , [Stone, Goal, Goal, Goal, Goal, Goal, Goal, Goal, Goal, Stone, Stone, Stone, Stone, Stone, Stone, Stone]
-      , [Stone, Goal, Goal, Goal, Goal, Goal, Goal, Goal, Goal, Stone, Stone, Stone, Stone, Stone, Stone, Stone]
-      , [Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone, Stone]
+      , [Stone,  Stone, Stone, Stone, Stone, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Stone, Stone, Stone]
+      , [Stone,  Stone, Stone, Stone, Stone, Stone, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Stone, Stone]
+      , [Stone,  Stone, Stone, Stone, Stone, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Dirt, Stone, Stone, Stone]
+      , [Stone, Stone, Dirt, Dirt, WaterSource, WaterSource, WaterSource, Dirt, Dirt, Dirt, Stone, Stone, Stone, Stone, Stone, Stone]
+      , [Stone, Dirt, WaterSource, WaterSource, WaterSource, WaterSource, WaterSource, WaterSource, Dirt, Dirt, Stone, Stone, Stone, Stone, Stone, Stone]
+      , [WaterSource, WaterSource, WaterSource, WaterSource, WaterSource, WaterSource, WaterSource, WaterSource, Dirt, Stone, Stone, Stone, Stone, Stone, Stone, Stone]
       ]
   , gridSize = (16, 15)
   , blockSize = 25.0
   , collectibles = 
-      [ Star (50, 50) False    -- Star positions based on image
-      , Star (50, -25) False
-      , Star (50, -100) False
+      [ Star (60, 65) False    -- Star positions based on image
+      , Star (-60, -25) False
+      , Star (10, -75) False
       ]
   , waterSpawnArea = ((-150, 150), (150, 175))  -- Top area where water spawns
   , goalArea = ((-150, -150), 50)  -- Swampy's tub in bottom left

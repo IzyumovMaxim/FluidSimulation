@@ -4,18 +4,16 @@ import Types
 import Physics
 import Render
 import Level
-import Graphics.Gloss (Display(InWindow), black)
+import Graphics.Gloss (Display(InWindow), black, Picture(..))
+import Graphics.Gloss.Juicy (loadJuicyPNG)
 import Graphics.Gloss.Interface.Pure.Game (play, Event(..), Key(..), KeyState(..), MouseButton(..), SpecialKey(..), Modifiers(..))
 import qualified Data.Vector as V
 import Data.Bits (Bits(shiftL))
 
 
-
--- test
-
 -- | Initial world state with optimized parameters
-initialWorld :: World
-initialWorld = 
+initialWorld :: Picture -> World
+initialWorld swampyPic = 
   let w = World { particles = []
                , gravity   = (0, -15.0)
                , mass      = 2.0
@@ -34,6 +32,7 @@ initialWorld =
                , gameState = Playing
                , collectedStars = 0
                , waterInGoal = False
+               , swampyImg = swampyPic  
                }
   in w { particles = generateInitialParticles w }
 
@@ -186,8 +185,16 @@ eventHandler _ world = world
 -- | Main entry point with enhanced information
 main :: IO ()
 main = do
-  let particleCount = length (particles initialWorld)
-  putStrLn $ "Starting 'Where's My Water' SPH Game with " ++ show particleCount ++ " particles"
+  putStrLn "Loading Swampy image..."
+  maybeImg <- loadJuicyPNG "src/assets/i.png"
+  case maybeImg of
+    Nothing -> putStrLn "Failed to load swampy image!"
+    Just _  -> putStrLn "Swampy image loaded successfully."
+
+  let swampyImage = maybe Blank id maybeImg
+      startingWorld = initialWorld swampyImage
+      particleCount = length (particles startingWorld)
+  -- putStrLn "Starting 'Where's My Water' SPH Game with " ++ show particleCount ++ " particles"
   putStrLn "Optimizations enabled:"
   putStrLn "  - Parallel computation (4 cores)"
   putStrLn "  - Vectorized operations"
@@ -219,10 +226,10 @@ main = do
   putStrLn "  Click and drag to interact with particles"
   
   play
-    (InWindow "Where's My Water - SPH Game" (800, 800) (100, 100))
+    (InWindow "Fluid simulation" (800, 800) (100, 100))
     black  
     300
-    initialWorld
-    renderWorld
+    startingWorld
+    (\world -> renderWorld world swampyImage ) 
     eventHandler
     updateWorld

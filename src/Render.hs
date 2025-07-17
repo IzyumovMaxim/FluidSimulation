@@ -4,6 +4,7 @@ import Level (getBlockColor)
 import Graphics.Gloss
 import Data.List (nub)
 import Physics (distance)
+import Data.Fixed (Pico)
 
 -- | Render particle as metaball with concentric alpha layers
 particleToPicture :: Float -> Particle -> Picture
@@ -99,8 +100,8 @@ drawStar star
            ]
 
 -- | Draw Swampy the crocodile (simplified representation)
-drawSwampy :: World -> Picture
-drawSwampy world =
+drawSwampy :: World -> Picture -> Picture
+drawSwampy world swampyPic =
   case currentLevel world of
     Nothing -> Blank
     Just level ->
@@ -110,25 +111,9 @@ drawSwampy world =
           -- Simple Swampy representation - green crocodile in a circle
           swampyPicture = pictures
             [ -- Bathtub circle
-              color (makeColor 0.2 0.8 0.2 0.3) $ circleSolid goalRadius
-            , color (makeColor 0.1 0.6 0.1 1.0) $ circle goalRadius
-            
-            -- Swampy body (simplified)
-            , color (makeColor 0.4 0.8 0.2 1.0) $ translate 0 (-5) $ circleSolid 15  -- Body
-            , color (makeColor 0.4 0.8 0.2 1.0) $ translate 0 8 $ circleSolid 10     -- Head
-            
-            -- Eyes
-            , color (makeColor 1.0 1.0 1.0 1.0) $ translate (-5) 12 $ circleSolid 3
-            , color (makeColor 1.0 1.0 1.0 1.0) $ translate 5 12 $ circleSolid 3
-            , color (makeColor 0.0 0.0 0.0 1.0) $ translate (-5) 12 $ circleSolid 1
-            , color (makeColor 0.0 0.0 0.0 1.0) $ translate 5 12 $ circleSolid 1
-            
-            -- Snout
-            , color (makeColor 0.4 0.8 0.2 1.0) $ translate 0 3 $ rectangleSolid 8 4
-            
-            -- Arms
-            , color (makeColor 0.4 0.8 0.2 1.0) $ translate (-12) (-2) $ circleSolid 4
-            , color (makeColor 0.4 0.8 0.2 1.0) $ translate 12 (-2) $ circleSolid 4
+              color (makeColor 1.0 1.0 1.0 0.7) $ circleSolid (goalRadius + 15)
+            , color (makeColor 0.1 0.6 0.1 1.0) $ circle (goalRadius + 15)
+            , scale 0.3 0.3 swampyPic
             ]
             
       in translate goalX goalY swampyPicture
@@ -149,7 +134,7 @@ drawGameUI world =
             , translate (-390) 320 $ scale 0.12 0.12 $ color white $ text stateText
             , translate (-390) 290 $ scale 0.1 0.1 $ color white $ text "Click to dig dirt"
             , translate (-390) 270 $ scale 0.1 0.1 $ color white $ text "R - Reset level"
-            , translate (-390) 250 $ scale 0.1 0.1 $ color white $ text "4 - Switch to puzzle mode"
+            , translate (-390) 250 $ scale 0.1 0.1 $ color white $ text "1 - Switch to fluid simulation menu"
             ]
             
       in pictures uiElements
@@ -194,14 +179,14 @@ drawParams world =
       in Pictures pictures
 
 -- | Main rendering function - combines all visual elements
-renderWorld :: World -> Picture
-renderWorld world = 
+renderWorld :: World -> Picture -> Picture
+renderWorld world swampyPic = 
   case scene world of
     PuzzleLevel -> 
       pictures [ drawLevel world
                , drawCollectibles world
                , blobs
-               , drawSwampy world
+               , drawSwampy world swampyPic
                , cursor
                , drawParams world
                ]

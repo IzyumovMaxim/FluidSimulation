@@ -13,7 +13,10 @@ executable sph-fluid
                  containers >=0.6,
                  vector >=0.12,
                  parallel >=3.2,
-                 deepseq >=1.4
+                 deepseq >=1.4,
+                 gloss-juicy,
+                 JuicyPixels
+
   default-language: Haskell2010
   ghc-options:
     -O2

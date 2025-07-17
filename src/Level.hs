@@ -142,8 +142,10 @@ updateGameState world =
 -- | Initialize world with puzzle level
 initializePuzzleLevel :: World -> World
 initializePuzzleLevel world = 
-  let newWorld = world { scene = PuzzleLevel
+  let baseLevel = sampleLevel
+      newWorld = world { scene = PuzzleLevel
                        , currentLevel = Just sampleLevel
+                       , initialLevel = Just baseLevel
                        , gameState = Playing
                        , collectedStars = 0
                        , waterInGoal = False
@@ -153,11 +155,10 @@ initializePuzzleLevel world =
 -- | Reset current level
 resetLevel :: World -> World
 resetLevel world = 
-  case currentLevel world of
+  case initialLevel world of
     Nothing -> world
     Just level ->
-      let resetLevel = level { collectibles = map (\s -> s { collected = False }) (collectibles level) }
-          newWorld = world { currentLevel = Just resetLevel
+      let newWorld = world { currentLevel = Just level
                            , gameState = Playing
                            , collectedStars = 0
                            , waterInGoal = False
@@ -169,7 +170,7 @@ getBlockColor :: BlockType -> (Float, Float, Float)
 getBlockColor blockType =
   case blockType of
     Empty -> (0, 0, 0)         -- Transparent/black
-    Dirt -> (0.8, 0.4, 0.2)    -- Brown
-    Stone -> (0.5, 0.3, 0.7)   -- Purple
+    Dirt -> (0.5, 0.4, 0.3)    -- Brown
+    Stone -> (0.3, 0.3, 0.3)   -- Dark Grey
     WaterSource -> (0.3, 0.7, 1.0)  -- Light blue
-    Goal -> (0.2, 0.8, 0.2)    -- Green
+    Goal -> (0.6, 0.6, 0.6)    -- Light Grey
