@@ -28,7 +28,7 @@ drawCursor world
       in translate x y $ color (makeColor 1 0 0 0.3) $ circleSolid radius
   | otherwise = Blank
 
--- | Draw level geometry (blocks)
+-- | Draw blocks for puzzle
 drawLevel :: World -> Picture
 drawLevel world =
   case currentLevel world of
@@ -90,7 +90,7 @@ drawCollectibles world =
 -- | Draw a single star
 drawStar :: Collectible -> Picture
 drawStar star
-  | collected star = Blank  -- Don't draw collected stars
+  | collected star = Blank
   | otherwise = 
       let (x, y) = starPos star
           starShape = polygon [(0, 10), (3, 3), (10, 3), (5, -2), (8, -8), (0, -5), (-8, -8), (-5, -2), (-10, 3), (-3, 3)]
@@ -99,7 +99,7 @@ drawStar star
            , color (makeColor 0.8 0.8 0.0 1.0) $ lineLoop [(0, 10), (3, 3), (10, 3), (5, -2), (8, -8), (0, -5), (-8, -8), (-5, -2), (-10, 3), (-3, 3)]
            ]
 
--- | Draw Swampy the crocodile (simplified representation)
+-- | Draw Swampy the crocodile
 drawSwampy :: World -> Picture -> Picture
 drawSwampy world swampyPic =
   case currentLevel world of
@@ -108,9 +108,8 @@ drawSwampy world swampyPic =
       let (goalX, goalY) = fst $ goalArea level
           goalRadius = snd $ goalArea level
           
-          -- Simple Swampy representation - green crocodile in a circle
           swampyPicture = pictures
-            [ -- Bathtub circle
+            [
               color (makeColor 1.0 1.0 1.0 0.7) $ circleSolid (goalRadius + 15)
             , color (makeColor 0.1 0.6 0.1 1.0) $ circle (goalRadius + 15)
             , scale 0.3 0.3 swampyPic
@@ -118,7 +117,7 @@ drawSwampy world swampyPic =
             
       in translate goalX goalY swampyPicture
 
--- | Draw game UI (score, status, etc.)
+-- | Draw game UI
 drawGameUI :: World -> Picture
 drawGameUI world =
   case scene world of
@@ -225,11 +224,11 @@ drawContainer world = color white $
 
     Windmill -> 
       Pictures
-        [ lineLoop [(-180,-180), (-180,180), (180,180), (180,-180)]  -- Границы
-        , translate 0 0 $ rotate (windmillAngle world * 180/pi) $  -- Вращение
+        [ lineLoop [(-180,-180), (-180,180), (180,180), (180,-180)]  -- Boundaries
+        , translate 0 0 $ rotate (windmillAngle world * 180/pi) $  -- Rotation
             Pictures
-              [ rectangleSolid 120 10   -- Горизонтальная лопасть
-              , rectangleSolid 10 120    -- Вертикальная лопасть
+              [ rectangleSolid 120 10   -- Horisontal part
+              , rectangleSolid 10 120    -- Vertical part
               ]
         ]
     PuzzleLevel -> Blank  -- Level geometry is drawn separately
