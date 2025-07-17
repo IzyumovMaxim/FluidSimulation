@@ -51,6 +51,22 @@ stack build
 stack exec -- sph-fluid -- +RTS -N8 -s -RTS
 ```
 
+
+## 📁Project structure
+```
+fluid-simulation/
+├── src/
+│   ├── assets/
+│   └── i.png         -- Swampy image🐊
+│   ├── Physics.hs    -- SPH calculations
+│   ├── Types.hs      -- Data types
+│   ├── Level.hs      -- Game level with fluid-based puzzle
+│   ├── Render.hs     -- Gloss visualization
+│   └── Main.hs       -- Entry point
+├── app.cabal         -- Build config
+└── stack.yaml        -- Stack config
+```
+
 ## 🎮User guide
 **Explore different simulation scenarios and our game mode!**
 <p align="left">
@@ -86,22 +102,6 @@ stack exec -- sph-fluid -- +RTS -N8 -s -RTS
   - R - Reset level
   - Goal: Collect all stars and get water to Swampy!
 
-
-
-## 📁Project structure
-```
-fluid-simulation/
-├── src/
-│   ├── assets/
-│   └── i.png         -- Swampy image🐊
-│   ├── Physics.hs    -- SPH calculations
-│   ├── Types.hs      -- Data types
-│   ├── Level.hs      -- Game level with fluid-based puzzle
-│   ├── Render.hs     -- Gloss visualization
-│   └── Main.hs       -- Entry point
-├── app.cabal         -- Build config
-└── stack.yaml        -- Stack config
-```
 
 ## 📝 ChangeLog
 **Stage I**
