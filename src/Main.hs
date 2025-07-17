@@ -197,11 +197,6 @@ main = do
   putStrLn "  W/w - Add/remove particles"
   putStrLn "  Hold Shift for larger adjustments"
   putStrLn "  Click and drag to interact with particles"
-  putStrLn ""
-  putStrLn "Performance tips:"
-  putStrLn "  - Use 'q' to reduce smoothing radius for better performance"
-  putStrLn "  - Use 'w' to reduce particle count if lagging"
-  putStrLn "  - Keep surface tension low (< 0.01) for stability"
   
   play
     (InWindow "Where's My Water - SPH Game" (800, 800) (100, 100))
