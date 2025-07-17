@@ -317,6 +317,22 @@ applyBoundaryConditions world (x, y) (vx, vy) =
 
 
 
+    Windmill ->
+      let (boundedX, newVx) 
+            | x < -180 = (-180, abs vx * 0.5)
+            | x > 180  = (180, -abs vx * 0.5)
+            | otherwise = (x, vx)
+          (boundedY, newVy) 
+            | y < -180 = (-180, abs vy * 0.5)
+            | y > 180  = (180, -abs vy * 0.5)
+            | otherwise = (y, vy)
+          
+          -- Обработка столкновения с мельницей
+          (millX, millY, millVx, millVy) = checkMillCollision world (boundedX, boundedY) (newVx, newVy)
+      in ((millX, millY), (millVx, millVy))
+
+
+
 
 
 checkTriangleCollisions :: Vector2 -> Vector2 -> (Float, Float, Float, Float)
@@ -354,3 +370,38 @@ ballForce world p
          then let factor = 1000 * (1 - r/radius) / r
               in (dx * factor, dy * factor)
          else (0, 0)
+
+
+
+checkMillCollision :: World -> Vector2 -> Vector2 -> (Float, Float, Float, Float)
+checkMillCollision world (x, y) (vx, vy) =
+  let angle = windmillAngle world
+      -- Преобразуем координаты частицы в систему координат мельницы
+      relX = x * cos angle + y * sin angle
+      relY = -x * sin angle + y * cos angle
+      
+      -- Проверяем столкновение с горизонтальной лопастью
+      collideHoriz = abs relY < 5 && abs relX < 60
+      -- Проверяем столкновение с вертикальной лопастью
+      collideVert = abs relX < 5 && abs relY < 60
+      
+      -- Если есть столкновение
+      collide = collideHoriz || collideVert
+  in if collide
+     then
+        -- Вычисляем нормаль в системе координат мельницы
+        let norm = if collideHoriz then (0, signum relY) else (signum relX, 0)
+            -- Преобразуем нормаль обратно в мировые координаты
+            worldNormX = normX * cos angle - normY * sin angle
+            worldNormY = normX * sin angle + normY * cos angle
+            (normX, normY) = norm
+            -- Отражение скорости
+            dotProduct = vx * worldNormX + vy * worldNormY
+            newVx = vx - 1.8 * dotProduct * worldNormX
+            newVy = vy - 1.8 * dotProduct * worldNormY
+            -- Сдвиг частицы во избежание залипания
+            offset = 1.0
+            newX = x + offset * worldNormX
+            newY = y + offset * worldNormY
+        in (newX, newVx, newY, newVy)
+     else (x, vx, y, vy)
