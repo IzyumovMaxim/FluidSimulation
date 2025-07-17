@@ -27,7 +27,6 @@ drawCursor world
       in translate x y $ color (makeColor 1 0 0 0.3) $ circleSolid radius
   | otherwise = Blank
 
-
 -- | Display current simulation parameters as on-screen text
 drawParams :: World -> Picture
 drawParams world =
@@ -38,6 +37,7 @@ drawParams world =
                , "Viscosity: " ++ show (viscosity world)
                , "Surface tension: " ++ show (surfaceTension world)
                , "Smoothing radius: " ++ show (h world)
+               , "Scene: " ++ show (scene world)
                , "Controls:"
                , " R - Reset simulation"
                , " Arrows - Gravity"
@@ -47,6 +47,9 @@ drawParams world =
                , " I/K - Viscosity"
                , " P/; - Surface tension"
                , " O/L - Smoothing radius"
+               , " 1 - Square scene"
+               , " 2 - Hourglass scene"
+               , " 3 - Ball scene"
                ]
       yStart = 350
       xStart = -390
@@ -58,13 +61,30 @@ drawParams world =
 
 -- | Main rendering function - combines all visual elements
 renderWorld :: World -> Picture
-renderWorld world = pictures [drawContainer, blobs, cursor, drawParams world]
+renderWorld world = pictures [drawContainer world, blobs, cursor, drawParams world]
   where
     ps = particles world
     hVal = h world
     blobs = pictures $ map (particleToPicture hVal) ps
     cursor = drawCursor world
 
--- | Draw simulation container boundaries
-drawContainer :: Picture
-drawContainer = color white $ lineLoop [(-180,-180),(-180,180),(180,180),(180,-180)]
+-- | Draw simulation container boundaries based on scene
+drawContainer :: World -> Picture
+drawContainer world = color white $
+  case scene world of
+    Square -> 
+      lineLoop [(-180,-180), (-180,180), (180,180), (180,-180)]      -- Whole scene square
+    
+    Hourglass -> 
+      Pictures
+        [
+          lineLoop [(-180,-180), (-180,180), (180,180), (180,-180)]  -- Whole scene square
+        , lineLoop [(-180,-180), (-4,0), (-180,180)]                -- Left triangle
+        , lineLoop [(180,-180), (4,0), (180,180)]                   -- Right triangle
+        ]
+
+    Ball -> 
+      Pictures
+        [ lineLoop [(-180,-180), (-180,180), (180,180), (180,-180)]
+        , translate 0 0 $ color white $ circle 45  -- White border
+        ]
