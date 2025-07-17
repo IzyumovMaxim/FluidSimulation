@@ -1,13 +1,45 @@
 # FluidSimulation
-Fluid simulation on Haskell, you can adjust parameters of fluid and interact with it via cursor (need to click and hold). We use Smoothed particle hydrodynamics (SPH) for physics simulation.
+A real-time fluid simulation written in Haskell, using Smoothed Particle Hydrodynamics (SPH) for physics modeling. You can interact with the fluid by clicking and dragging the mouse—adjust simulation parameters on the fly for a customizable experience.
 
-![Simulation](footage/scene_record.mov)
+[👉View Simulation Demo](footage/scene_record.mov)
 
-**Also a level of Swampy the alligator game is avaliable:**
-![Photo](footage/swampy_gameplay.png)
+## 👥 Contributors
+<table>
+  <tr>
+    <td align="center" width="250px">
+      <a href="https://github.com/IzyumovMaxim">
+        <img src="footage/maxim.jpg" width="80" alt="Maxim"/>
+        <div>Maxim Izyumov</div>
+      </a>
+    </td>
+    <td align="center" width="250px">
+      <a href="https://github.com/RII6">
+        <img src="footage/albert.jpg" width="80" alt="Albert"/>
+        <div>Albert Khechoyan</div>
+      </a>
+    </td>
+    <td align="center" width="250px">
+      <a href="https://github.com/ashuno">
+        <img src="footage/irina.jpg" width="80" alt="Irina"/>
+        <div>Irina Perekrestova</div>
+      </a>
+    </td>
+  </tr>
+  <tr>
+    <td align="center">
+      <div>Computations Optimization</div>
+    </td>
+    <td align="center">
+      <div>Complex Environments</div>
+    </td>
+    <td align="center">
+      <div>Fluid-based Puzzle</div>
+    </td>
+  </tr>
+</table>
 
 
-## Getting started
+## 🚀Getting started
 Clone repository
 ```
 git clone https://github.com/IzyumovMaxim/FluidSimulation
@@ -19,8 +51,8 @@ stack build
 stack exec -- sph-fluid -- +RTS -N8 -s -RTS
 ```
 
-## User guide
-Here you can find all possible user scenarios:
+## 🎮User guide
+**Explore different simulation scenarios and our game mode!**
 <p align="left">
 <img src="footage/square scene.png" width="200" />
 <img src="footage/hourglass scene.png" width="200" />
@@ -56,7 +88,7 @@ Here you can find all possible user scenarios:
 
 
 
-## Project directory structure
+## 📁Project structure
 ```
 fluid-simulation/
 ├── src/
@@ -71,7 +103,7 @@ fluid-simulation/
 └── stack.yaml        -- Stack config
 ```
 
-## ChangeLog
+## 📝 ChangeLog
 **Stage I**
 - Basic 2D visualisation and modelling;
 - One scene with some shape containing the fluid;
