@@ -123,11 +123,11 @@ generateInitialParticles world =
     where
       inMillArea (x,y) = 
         let dist = sqrt (x^2 + y^2)
-        in dist < 60  -- Исключаем область мельницы
+        in dist < 60
 
     
       
--- | Generate particles for puzzle level (spawn from water source)
+-- | Generate particles for puzzle level
 generateLevelParticles :: Level -> [Particle]
 generateLevelParticles level =
   let ((minX, minY), (maxX, maxY)) = waterSpawnArea level
@@ -144,7 +144,6 @@ worldToGrid :: Level -> Vector2 -> GridCoord
 worldToGrid level (x, y) = 
   let (gridW, gridH) = gridSize level
       blockSz = blockSize level
-      -- Assume grid is centered at origin
       gridX = floor ((x + fromIntegral gridW * blockSz / 2) / blockSz)
       gridY = floor ((y + fromIntegral gridH * blockSz / 2) / blockSz)
   in (gridX, gridY)
@@ -183,7 +182,7 @@ setBlockAt level (gx, gy) newBlock =
           newRow = beforeCols ++ [newVal] ++ afterCols
       in beforeRows ++ [newRow] ++ afterRows
 
--- | Sample level data (matching the image you showed)
+-- | Sample level data
 sampleLevel :: Level
 sampleLevel = Level
   { levelGrid = 
