@@ -1,6 +1,11 @@
 # FluidSimulation
 Fluid simulation on Haskell, you can adjust parameters of fluid and interact with it via cursor (need to click and hold). We use Smoothed particle hydrodynamics (SPH) for physics simulation.
 
+![Simulation](footage/scene_record.mov)
+
+**Also Swampy crocodile is avaliable as a game mode**
+![Photo](footage/swampy_gameplay.png)
+
 In this version (stage 1) there is:
 - basic 2D visualisation and modelling;
 - one scene with some shape containing the fluid;
