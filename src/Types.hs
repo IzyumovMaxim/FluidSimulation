@@ -29,14 +29,6 @@ data World = World
   , scene :: Scene             -- Current scene
   }
 
--- | Check if point is inside hourglass shape
-insideHourglass :: Vector2 -> Bool
-insideHourglass (x, y)
-  | y > 0 = abs x < (180 - y * 180 / 180)  -- Upper triangle
-  | y < 0 = abs x < (180 + y * 180 / 180)  -- Lower triangle
-  | otherwise = abs x < 10                  -- Narrow passage
-  
-
 -- | Generate initial particle distribution based on scene
 generateInitialParticles :: World -> [Particle]
 generateInitialParticles world =
@@ -57,7 +49,4 @@ generateInitialParticles world =
       [ Particle (x, y) (0,0) 0 0
       | x <- [-50, -45..50]
       , y <- [80, 85..140]
-      , (x*x + (y-110)*(y-110)) <= 50*50 
-      , not (inBall (x,y)) ]
-  where
-    inBall (x,y) = (x)^2 + (y)^2 <= 50^2
+      , (x*x + (y-110)*(y-110)) <= 50*50 ]
