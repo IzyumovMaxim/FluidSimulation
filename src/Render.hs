@@ -1,5 +1,4 @@
 module Render where
-
 import Types
 import Graphics.Gloss
 import Data.List (nub)
@@ -87,4 +86,14 @@ drawContainer world = color white $
       Pictures
         [ lineLoop [(-180,-180), (-180,180), (180,180), (180,-180)]
         , translate 0 0 $ color white $ circle 45  -- White border
+        ]
+
+    Windmill -> 
+      Pictures
+        [ lineLoop [(-180,-180), (-180,180), (180,180), (180,-180)]  -- Границы
+        , translate 0 0 $ rotate (windmillAngle world * 180/pi) $  -- Вращение
+            Pictures
+              [ rectangleSolid 120 10   -- Горизонтальная лопасть
+              , rectangleSolid 10 120    -- Вертикальная лопасть
+              ]
         ]
