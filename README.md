@@ -24,6 +24,7 @@ fluid-simulation/
 ├── src/
 │   ├── Physics.hs    -- SPH calculations
 │   ├── Types.hs      -- Data types
+│   ├── Level.hs      -- Game level with fluid-based puzzle
 │   ├── Render.hs     -- Gloss visualization
 │   └── Main.hs       -- Entry point
 ├── app.cabal         -- Build config
