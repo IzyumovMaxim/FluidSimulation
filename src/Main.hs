@@ -11,7 +11,7 @@ import qualified Data.Vector as V
 import Data.Bits (Bits(shiftL))
 
 
--- | Initial world state with optimized parameters
+-- | Initial world state
 initialWorld :: Picture -> World
 initialWorld swampyPic = 
   let w = World { particles = []
@@ -27,7 +27,6 @@ initialWorld swampyPic =
                , scene     = Square
                , windmillAngle = 0
                , windmillSpeed = 1.5
-               -- New puzzle game fields
                , currentLevel = Nothing
                , gameState = Playing
                , collectedStars = 0
@@ -36,7 +35,7 @@ initialWorld swampyPic =
                }
   in w { particles = generateInitialParticles w }
 
--- | Optimized simulation update with puzzle game logic
+-- | Simulation update with puzzle game logic
 updateWorld :: Float -> World -> World
 updateWorld dt world =
   case scene world of
@@ -63,10 +62,10 @@ updatePuzzleWorld world =
 -- | Update regular fluid simulation world
 updateFluidWorld :: Float -> World -> World
 updateFluidWorld dt world =
-  let -- Обновляем угол мельницы на основе времени и скорости
+  let
       newAngle = windmillAngle world + windmillSpeed world * dt
       
-      -- Обновляем частицы
+      -- Update particles
       particleVector = V.fromList (particles world)
       grid = buildOptimizedGrid (h world) particleVector
       ps1 = computeDensityPressureParallel world grid particleVector
@@ -76,7 +75,7 @@ updateFluidWorld dt world =
   in world { particles = V.toList ps2, windmillAngle = newAngle }
 
 
--- | Enhanced event handler with puzzle game controls
+-- | Event handler controls for pissle and simulations
 eventHandler :: Event -> World -> World
 eventHandler (EventMotion pos) world = 
   world { mousePos = pos }
@@ -182,7 +181,7 @@ eventHandler (EventKey (Char c) Down mods _) world
 
 eventHandler _ world = world
 
--- | Main entry point with enhanced information
+-- | Main entry point
 main :: IO ()
 main = do
   putStrLn "Loading Swampy image..."
