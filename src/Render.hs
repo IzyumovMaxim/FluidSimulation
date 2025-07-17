@@ -1,5 +1,6 @@
 module Render where
 import Types
+import Level (getBlockColor)
 import Graphics.Gloss
 import Data.List (nub)
 import Physics (distance)
@@ -26,41 +27,188 @@ drawCursor world
       in translate x y $ color (makeColor 1 0 0 0.3) $ circleSolid radius
   | otherwise = Blank
 
+-- | Draw level geometry (blocks)
+drawLevel :: World -> Picture
+drawLevel world =
+  case currentLevel world of
+    Nothing -> Blank
+    Just level ->
+      let (gridW, gridH) = gridSize level
+          blockSz = blockSize level
+          grid = levelGrid level
+          
+          -- Generate all block pictures
+          blockPictures = 
+            [ drawBlock level (gx, gy) blockType
+            | gy <- [0..gridH-1]
+            , gx <- [0..gridW-1]
+            , let blockType = (grid !! gy) !! gx
+            , blockType /= Empty
+            ]
+            
+      in pictures blockPictures
+
+-- | Draw a single block
+drawBlock :: Level -> GridCoord -> BlockType -> Picture
+drawBlock level gridCoord blockType =
+  let (worldX, worldY) = gridToWorld level gridCoord
+      blockSz = blockSize level
+      (r, g, b) = getBlockColor blockType
+      
+      blockPicture = case blockType of
+        Dirt -> 
+          pictures [ color (makeColor r g b 1.0) $ rectangleSolid blockSz blockSz
+                   , color (makeColor (r*0.8) (g*0.8) (b*0.8) 1.0) $ rectangleWire blockSz blockSz
+                   ]
+        Stone ->
+          pictures [ color (makeColor r g b 1.0) $ rectangleSolid blockSz blockSz
+                   , color (makeColor (r*0.6) (g*0.6) (b*0.6) 1.0) $ rectangleWire blockSz blockSz
+                   ]
+        WaterSource ->
+          pictures [ color (makeColor r g b 0.7) $ rectangleSolid blockSz blockSz
+                   , color (makeColor (r*0.7) (g*0.7) (b*0.7) 1.0) $ rectangleWire blockSz blockSz
+                   ]
+        Goal ->
+          pictures [ color (makeColor r g b 0.8) $ rectangleSolid blockSz blockSz
+                   , color (makeColor (r*0.7) (g*0.7) (b*0.7) 1.0) $ rectangleWire blockSz blockSz
+                   ]
+        Empty -> Blank
+        
+  in translate worldX worldY blockPicture
+
+-- | Draw collectible stars
+drawCollectibles :: World -> Picture
+drawCollectibles world =
+  case currentLevel world of
+    Nothing -> Blank
+    Just level ->
+      let stars = collectibles level
+          starPictures = map drawStar stars
+      in pictures starPictures
+
+-- | Draw a single star
+drawStar :: Collectible -> Picture
+drawStar star
+  | collected star = Blank  -- Don't draw collected stars
+  | otherwise = 
+      let (x, y) = starPos star
+          starShape = polygon [(0, 10), (3, 3), (10, 3), (5, -2), (8, -8), (0, -5), (-8, -8), (-5, -2), (-10, 3), (-3, 3)]
+      in translate x y $ pictures
+           [ color (makeColor 1.0 1.0 0.0 1.0) $ starShape  -- Yellow star
+           , color (makeColor 0.8 0.8 0.0 1.0) $ lineLoop [(0, 10), (3, 3), (10, 3), (5, -2), (8, -8), (0, -5), (-8, -8), (-5, -2), (-10, 3), (-3, 3)]
+           ]
+
+-- | Draw Swampy the crocodile (simplified representation)
+drawSwampy :: World -> Picture
+drawSwampy world =
+  case currentLevel world of
+    Nothing -> Blank
+    Just level ->
+      let (goalX, goalY) = fst $ goalArea level
+          goalRadius = snd $ goalArea level
+          
+          -- Simple Swampy representation - green crocodile in a circle
+          swampyPicture = pictures
+            [ -- Bathtub circle
+              color (makeColor 0.2 0.8 0.2 0.3) $ circleSolid goalRadius
+            , color (makeColor 0.1 0.6 0.1 1.0) $ circle goalRadius
+            
+            -- Swampy body (simplified)
+            , color (makeColor 0.4 0.8 0.2 1.0) $ translate 0 (-5) $ circleSolid 15  -- Body
+            , color (makeColor 0.4 0.8 0.2 1.0) $ translate 0 8 $ circleSolid 10     -- Head
+            
+            -- Eyes
+            , color (makeColor 1.0 1.0 1.0 1.0) $ translate (-5) 12 $ circleSolid 3
+            , color (makeColor 1.0 1.0 1.0 1.0) $ translate 5 12 $ circleSolid 3
+            , color (makeColor 0.0 0.0 0.0 1.0) $ translate (-5) 12 $ circleSolid 1
+            , color (makeColor 0.0 0.0 0.0 1.0) $ translate 5 12 $ circleSolid 1
+            
+            -- Snout
+            , color (makeColor 0.4 0.8 0.2 1.0) $ translate 0 3 $ rectangleSolid 8 4
+            
+            -- Arms
+            , color (makeColor 0.4 0.8 0.2 1.0) $ translate (-12) (-2) $ circleSolid 4
+            , color (makeColor 0.4 0.8 0.2 1.0) $ translate 12 (-2) $ circleSolid 4
+            ]
+            
+      in translate goalX goalY swampyPicture
+
+-- | Draw game UI (score, status, etc.)
+drawGameUI :: World -> Picture
+drawGameUI world =
+  case scene world of
+    PuzzleLevel ->
+      let starsText = "Stars: " ++ show (collectedStars world) ++ "/3"
+          stateText = case gameState world of
+            Playing -> if waterInGoal world then "Water reached Swampy!" else "Dig to help water reach Swampy!"
+            Won -> "LEVEL COMPLETE!"
+            Lost -> "Try Again!"
+          
+          uiElements = 
+            [ translate (-390) 350 $ scale 0.15 0.15 $ color white $ text starsText
+            , translate (-390) 320 $ scale 0.12 0.12 $ color white $ text stateText
+            , translate (-390) 290 $ scale 0.1 0.1 $ color white $ text "Click to dig dirt"
+            , translate (-390) 270 $ scale 0.1 0.1 $ color white $ text "R - Reset level"
+            , translate (-390) 250 $ scale 0.1 0.1 $ color white $ text "4 - Switch to puzzle mode"
+            ]
+            
+      in pictures uiElements
+    _ -> Blank
+
 -- | Display current simulation parameters as on-screen text
 drawParams :: World -> Picture
 drawParams world =
-  let params = [ "Gravity: " ++ show (gravity world)
-               , "Mass: " ++ show (mass world)
-               , "Rest density: " ++ show (rho0 world)
-               , "Stiffness: " ++ show (stiffness world)
-               , "Viscosity: " ++ show (viscosity world)
-               , "Surface tension: " ++ show (surfaceTension world)
-               , "Smoothing radius: " ++ show (h world)
-               , "Scene: " ++ show (scene world)
-               , "Controls:"
-               , " R - Reset simulation"
-               , " Arrows - Gravity"
-               , " T/G - Mass"
-               , " Y/H - Density"
-               , " U/J - Stiffness"
-               , " I/K - Viscosity"
-               , " P/; - Surface tension"
-               , " O/L - Smoothing radius"
-               , " 1 - Square scene"
-               , " 2 - Hourglass scene"
-               , " 3 - Ball scene"
-               ]
-      yStart = 350
-      xStart = -390
-      lineHeight = 20
-      pictures = [ translate xStart (yStart - fromIntegral (i * lineHeight)) $
-                   scale 0.1 0.1 $ color white $ text param
-                 | (i, param) <- zip [0..] params ]
-  in Pictures pictures
+  case scene world of
+    PuzzleLevel -> drawGameUI world  -- Show game UI instead of physics params
+    _ -> 
+      let params = [ "Gravity: " ++ show (gravity world)
+                   , "Mass: " ++ show (mass world)
+                   , "Rest density: " ++ show (rho0 world)
+                   , "Stiffness: " ++ show (stiffness world)
+                   , "Viscosity: " ++ show (viscosity world)
+                   , "Surface tension: " ++ show (surfaceTension world)
+                   , "Smoothing radius: " ++ show (h world)
+                   , "Scene: " ++ show (scene world)
+                   , "Controls:"
+                   , " R - Reset simulation"
+                   , " Arrows - Gravity"
+                   , " T/G - Mass"
+                   , " Y/H - Density"
+                   , " U/J - Stiffness"
+                   , " I/K - Viscosity"
+                   , " P/; - Surface tension"
+                   , " O/L - Smoothing radius"
+                   , " 1 - Square scene"
+                   , " 2 - Hourglass scene"
+                   , " 3 - Ball scene"
+                   , " 4 - Puzzle level"
+                   ]
+          yStart = 350
+          xStart = -390
+          lineHeight = 20
+          pictures = [ translate xStart (yStart - fromIntegral (i * lineHeight)) $
+                       scale 0.1 0.1 $ color white $ text param
+                     | (i, param) <- zip [0..] params ]
+      in Pictures pictures
 
 -- | Main rendering function - combines all visual elements
 renderWorld :: World -> Picture
-renderWorld world = pictures [drawContainer world, blobs, cursor, drawParams world]
+renderWorld world = 
+  case scene world of
+    PuzzleLevel -> 
+      pictures [ drawLevel world
+               , drawCollectibles world
+               , blobs
+               , drawSwampy world
+               , cursor
+               , drawParams world
+               ]
+    _ -> 
+      pictures [ drawContainer world
+               , blobs
+               , cursor
+               , drawParams world
+               ]
   where
     ps = particles world
     hVal = h world
@@ -97,3 +245,7 @@ drawContainer world = color white $
               , rectangleSolid 10 120    -- Вертикальная лопасть
               ]
         ]
+    PuzzleLevel -> Blank  -- Level geometry is drawn separately
+
+
+

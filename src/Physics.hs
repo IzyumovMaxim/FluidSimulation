@@ -1,6 +1,7 @@
 module Physics where
 
 import Types
+import Level (checkLevelCollision, isPositionBlocked)
 import Data.List (foldl')
 import qualified Data.Map.Strict as M
 import qualified Data.IntMap.Strict as IM
@@ -157,7 +158,8 @@ updateSingleParticle world grid particles idx =
       fCursor = cursorForce world p
       fBall = ballForce world p
       fGravity = vecScale (mass world) (gravity world)
-      -- Исправленный список сил
+      
+      -- Combine all forces
       fTotal = foldl' vecAdd (0,0) 
         [ fPressure forces
         , fViscosity forces  
@@ -167,12 +169,16 @@ updateSingleParticle world grid particles idx =
         , fBall
         , fGravity
         ]
+      
       dt = 0.016
       acceleration = vecScale (1 / mass world) fTotal
       newVel = vecAdd (velocity p) (vecScale dt acceleration)
       newPos = vecAdd (position p) (vecScale dt newVel)
       dampedVel = vecScale 0.98 newVel
+      
+      -- Apply boundary conditions (scene-specific or level-specific)
       (boundedPos, finalVel) = applyBoundaryConditions world newPos dampedVel
+      
   in p { position = boundedPos, velocity = finalVel }
 
 
@@ -260,13 +266,36 @@ cursorForce world p
               in (dx * factor, dy * factor)
          else (0, 0)
 
+-- -- | Ball force for Ball scene
+-- ballForce :: World -> Particle -> Vector2
+-- ballForce world p
+--   | scene world /= Ball = (0, 0)
+--   | otherwise =
+--       let center = (0, 0)
+--           radius = 50
+--           (px, py) = position p
+--           dx = px - fst center
+--           dy = py - snd center
+--           r = sqrt (dx*dx + dy*dy)
+--       in if r < radius && r > 0
+--          then let factor = 1000 * (1 - r/radius) / r
+--               in (dx * factor, dy * factor)
+--          else (0, 0)
 
--- | Apply boundary conditions based on scene
+-- | Apply boundary conditions based on scene (enhanced with level collision)
 applyBoundaryConditions :: World -> Vector2 -> Vector2 -> (Vector2, Vector2)
-applyBoundaryConditions world (x, y) (vx, vy) =
+applyBoundaryConditions world newPos newVel =
   case scene world of
+    PuzzleLevel -> 
+      -- Use level collision detection
+      let particle = Particle newPos newVel 0 0  -- Temporary particle for collision check
+          (finalPos, finalVel) = checkLevelCollision world particle (newPos, newVel)
+      in (finalPos, finalVel)
+    
     Square ->
-      let (boundedX, newVx) 
+      let (x, y) = newPos
+          (vx, vy) = newVel
+          (boundedX, newVx) 
             | x < -180 = (-180, abs vx * 0.5)
             | x > 180  = (180, -abs vx * 0.5)
             | otherwise = (x, vx)
@@ -277,35 +306,36 @@ applyBoundaryConditions world (x, y) (vx, vy) =
       in ((boundedX, boundedY), (newVx, newVy))
     
     Hourglass ->
-          let
-              (boundedY, newVy) 
-                | y < -180 = (-180, abs vy * 0.5)
-                | y > 180  = (180, -abs vy * 0.5)
-                | otherwise = (y, vy)
-              
-              -- Defining left triange walls
-              leftWallX = 
-                if y > 0
-                then -180 + (180 - y) * (176 / 180)
-                else -4 - (abs y) * (176 / 180)
-              
-              -- Defining right triange walls
-              rightWallX = 
-                if y > 0
-                then 180 - (180 - y) * (176 / 180)
-                else 4 + (abs y) * (176 / 180)
-              
-              -- Handling collision with triange walls
-              (boundedX, newVx) 
-                | x < leftWallX = (leftWallX, abs vx * 0.5)
-                | x > rightWallX = (rightWallX, -abs vx * 0.5)
-                | otherwise = (x, vx)
-              
-          in ((boundedX, boundedY), (newVx, newVy))
+      let (x, y) = newPos
+          (vx, vy) = newVel
+          (boundedY, newVy) 
+            | y < -180 = (-180, abs vy * 0.5)
+            | y > 180  = (180, -abs vy * 0.5)
+            | otherwise = (y, vy)
+          
+          -- Define triangle walls
+          leftWallX = 
+            if y > 0
+            then -180 + (180 - y) * (176 / 180)
+            else -4 - (abs y) * (176 / 180)
+          
+          rightWallX = 
+            if y > 0
+            then 180 - (180 - y) * (176 / 180)
+            else 4 + (abs y) * (176 / 180)
+          
+          -- Handle collision with triangle walls
+          (boundedX, newVx) 
+            | x < leftWallX = (leftWallX, abs vx * 0.5)
+            | x > rightWallX = (rightWallX, -abs vx * 0.5)
+            | otherwise = (x, vx)
+          
+      in ((boundedX, boundedY), (newVx, newVy))
 
-
-    Ball ->  -- Добавляем обработку для сцены с шаром
-      let (boundedX, newVx) 
+    Ball ->
+      let (x, y) = newPos
+          (vx, vy) = newVel
+          (boundedX, newVx) 
             | x < -180 = (-180, abs vx * 0.5)
             | x > 180  = (180, -abs vx * 0.5)
             | otherwise = (x, vx)
@@ -318,7 +348,9 @@ applyBoundaryConditions world (x, y) (vx, vy) =
 
 
     Windmill ->
-      let (boundedX, newVx) 
+      let (x, y) = newPos
+          (vx, vy) = newVel
+          (boundedX, newVx) 
             | x < -180 = (-180, abs vx * 0.5)
             | x > 180  = (180, -abs vx * 0.5)
             | otherwise = (x, vx)
@@ -326,10 +358,8 @@ applyBoundaryConditions world (x, y) (vx, vy) =
             | y < -180 = (-180, abs vy * 0.5)
             | y > 180  = (180, -abs vy * 0.5)
             | otherwise = (y, vy)
-          
-          -- Обработка столкновения с мельницей
-          (millX, millY, millVx, millVy) = checkMillCollision world (boundedX, boundedY) (newVx, newVy)
-      in ((millX, millY), (millVx, millVy))
+      in ((boundedX, boundedY), (newVx, newVy))
+
 
 
 
