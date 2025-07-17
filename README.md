@@ -27,6 +27,8 @@ stack exec -- sph-fluid -- +RTS -N8 -s -RTS
 ```
 fluid-simulation/
 ├── src/
+│   ├── assets/
+    └── i.png         -- Swampy image🐊
 │   ├── Physics.hs    -- SPH calculations
 │   ├── Types.hs      -- Data types
 │   ├── Level.hs      -- Game level with fluid-based puzzle
