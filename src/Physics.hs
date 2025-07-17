@@ -336,7 +336,6 @@ applyBoundaryConditions world newPos newVel =
             | y < -180 = (-180, abs vy * 0.5)
             | y > 180  = (180, -abs vy * 0.5)
             | otherwise = (y, vy)
-          -- Обработка столкновения с мельницей
           (millX, millY, millVx, millVy) = checkMillCollision world (boundedX, boundedY) (newVx, newVy)
       in ((millX, millY), (millVx, millVy))
 
@@ -355,10 +354,8 @@ checkTriangleCollisions (x, y) (vx, vy) =
       rightLower = (x - 90) / (0 - 90) < (y - (-90)) / (0 - (-90))     
   in if (y > 0 && (leftUpper || rightUpper)) || (y < 0 && (leftLower || rightLower))
      then let
-            -- Инвертируем скорость с затуханием
             newVx = -vx * 0.5
             newVy = -vy * 0.5
-            -- Сдвигаем частицу обратно
             offset = 1.0
             newX = if leftUpper || leftLower then x + offset else if rightUpper || rightLower then x - offset else x
             newY = if y > 0 then y - offset else y + offset
