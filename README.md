@@ -114,9 +114,8 @@ fluid-simulation/
 - Several fluid simulation scenes: sware, circle, hourglass, windmill;
 - Added one level of game mode: "Where Is My Water?", as a simple fluid-based puzzle;
 - Optimizations enabled:
-  - Parallel computation (4 cores)
+  - Parallel computation (8 cores)
   - Vectorized operations
   - Optimized spatial grid
-  - Reduced memory allocations
 
   
