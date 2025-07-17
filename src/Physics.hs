@@ -24,8 +24,7 @@ buildOptimizedGrid hVal particles =
       cellAssignments = V.map assignCell indexed
   in IM.fromListWith (++) (V.toList cellAssignments)
   where
-    cellSize = hVal * 1.2  -- Moved inside the where clause
-    
+    cellSize = hVal * 1.2
     assignCell (idx, p) = 
       let (x, y) = position p
           i = floor (x / cellSize)
@@ -44,20 +43,17 @@ getNeighborIndices grid particles idx hVal =
       candidates = concatMap (\h -> fromMaybe [] (IM.lookup h grid)) cellHashes
   in filter (\nIdx -> nIdx /= idx && distance p (particles V.! nIdx) < hVal) candidates
   where
-    cellSize = hVal * 1.2  -- Added where clause
+    cellSize = hVal * 1.2
 
 -- | Parallel density and pressure computation
 computeDensityPressureParallel :: World -> OptimizedGrid -> V.Vector Particle -> V.Vector Particle
 computeDensityPressureParallel world grid particles = 
   let indices = [0 .. V.length particles - 1]
-      chunkSize = max 1 (V.length particles `div` 4)  -- 4 chunks for parallelization
+      chunkSize = max 1 (V.length particles `div` 4)
       chunks = chunksOf chunkSize indices
-      
       processChunk chunk = map (computeDensityPressureForIndex world grid particles) chunk
-      
       results = parMap rseq processChunk chunks
       flatResults = concat results
-      
   in V.fromList flatResults
 
 -- | Compute density and pressure for a single particle index
@@ -88,10 +84,7 @@ computeAllForces world grid particles idx =
   let p = particles V.! idx
       neighborIndices = getNeighborIndices grid particles idx (h world)
       neighbors = map (particles V.!) neighborIndices
-      
-      -- Compute all forces in a single pass through neighbors
       forces = foldl' (computeForceContribution world p) zeroForces neighbors
-      
   in forces
 
 -- | Compute force contribution from a single neighbor
@@ -161,29 +154,29 @@ updateSingleParticle :: World -> OptimizedGrid -> V.Vector Particle -> Int -> Pa
 updateSingleParticle world grid particles idx =
   let p = particles V.! idx
       forces = computeAllForces world grid particles idx
-      
       fCursor = cursorForce world p
+      fBall = ballForce world p
       fGravity = vecScale (mass world) (gravity world)
-      
-      -- Combine all forces
+      -- Исправленный список сил
       fTotal = foldl' vecAdd (0,0) 
         [ fPressure forces
         , fViscosity forces  
         , fSurface forces
         , fCollision forces
         , fCursor
+        , fBall
         , fGravity
         ]
-      
       dt = 0.016
       acceleration = vecScale (1 / mass world) fTotal
       newVel = vecAdd (velocity p) (vecScale dt acceleration)
       newPos = vecAdd (position p) (vecScale dt newVel)
-      
       dampedVel = vecScale 0.98 newVel
-      (boundedPos, finalVel) = applyBoundaryConditions newPos dampedVel
-      
+      (boundedPos, finalVel) = applyBoundaryConditions world newPos dampedVel
   in p { position = boundedPos, velocity = finalVel }
+
+
+
 
 -- | Utility function to split list into chunks
 chunksOf :: Int -> [a] -> [[a]]
@@ -262,23 +255,102 @@ cursorForce world p
           r = sqrt (dx*dx + dy*dy)
           cursorRadius = 50
           maxForce = 800
-          
       in if r < cursorRadius && r > 0
          then let factor = maxForce * (1 - r/cursorRadius) / r
               in (dx * factor, dy * factor)
          else (0, 0)
 
--- | Apply boundary conditions
-applyBoundaryConditions :: Vector2 -> Vector2 -> (Vector2, Vector2)
-applyBoundaryConditions (x,y) (vx, vy) =
-  let (boundedX, newVx) 
-        | x < -180 = (-180, abs vx * 0.5)
-        | x > 180  = (180, -abs vx * 0.5)
-        | otherwise = (x, vx)
 
-      (boundedY, newVy) 
-        | y < -180 = (-180, abs vy * 0.5)
-        | y > 180  = (180, -abs vy * 0.5)
-        | otherwise = (y, vy)
-        
-  in ((boundedX, boundedY), (newVx, newVy))
+-- | Apply boundary conditions based on scene
+applyBoundaryConditions :: World -> Vector2 -> Vector2 -> (Vector2, Vector2)
+applyBoundaryConditions world (x, y) (vx, vy) =
+  case scene world of
+    Square ->
+      let (boundedX, newVx) 
+            | x < -180 = (-180, abs vx * 0.5)
+            | x > 180  = (180, -abs vx * 0.5)
+            | otherwise = (x, vx)
+          (boundedY, newVy) 
+            | y < -180 = (-180, abs vy * 0.5)
+            | y > 180  = (180, -abs vy * 0.5)
+            | otherwise = (y, vy)
+      in ((boundedX, boundedY), (newVx, newVy))
+    
+    Hourglass ->
+          let
+              (boundedY, newVy) 
+                | y < -180 = (-180, abs vy * 0.5)
+                | y > 180  = (180, -abs vy * 0.5)
+                | otherwise = (y, vy)
+              
+              -- Defining left triange walls
+              leftWallX = 
+                if y > 0
+                then -180 + (180 - y) * (176 / 180)
+                else -4 - (abs y) * (176 / 180)
+              
+              -- Defining right triange walls
+              rightWallX = 
+                if y > 0
+                then 180 - (180 - y) * (176 / 180)
+                else 4 + (abs y) * (176 / 180)
+              
+              -- Handling collision with triange walls
+              (boundedX, newVx) 
+                | x < leftWallX = (leftWallX, abs vx * 0.5)
+                | x > rightWallX = (rightWallX, -abs vx * 0.5)
+                | otherwise = (x, vx)
+              
+          in ((boundedX, boundedY), (newVx, newVy))
+
+
+    Ball ->  -- Добавляем обработку для сцены с шаром
+      let (boundedX, newVx) 
+            | x < -180 = (-180, abs vx * 0.5)
+            | x > 180  = (180, -abs vx * 0.5)
+            | otherwise = (x, vx)
+          (boundedY, newVy) 
+            | y < -180 = (-180, abs vy * 0.5)
+            | y > 180  = (180, -abs vy * 0.5)
+            | otherwise = (y, vy)
+      in ((boundedX, boundedY), (newVx, newVy))
+
+
+
+
+
+checkTriangleCollisions :: Vector2 -> Vector2 -> (Float, Float, Float, Float)
+checkTriangleCollisions (x, y) (vx, vy) =
+  let 
+      leftUpper = (x - (-90)) / (0 - (-90)) > (y - 90) / (0 - 90) 
+      rightUpper = (x - 90) / (0 - 90) > (y - 90) / (0 - 90)   
+
+      leftLower = (x - (-90)) / (0 - (-90)) < (y - (-90)) / (0 - (-90))
+      rightLower = (x - 90) / (0 - 90) < (y - (-90)) / (0 - (-90))     
+  in if (y > 0 && (leftUpper || rightUpper)) || (y < 0 && (leftLower || rightLower))
+     then let
+            -- Инвертируем скорость с затуханием
+            newVx = -vx * 0.5
+            newVy = -vy * 0.5
+            -- Сдвигаем частицу обратно
+            offset = 1.0
+            newX = if leftUpper || leftLower then x + offset else if rightUpper || rightLower then x - offset else x
+            newY = if y > 0 then y - offset else y + offset
+          in (newX, newVx, newY, newVy)
+     else (x, vx, y, vy)
+
+-- Добавим функцию ballForce
+ballForce :: World -> Particle -> Vector2
+ballForce world p
+  | scene world /= Ball = (0, 0)
+  | otherwise =
+      let center = (0, 0)
+          radius = 50
+          (px, py) = position p
+          dx = px - fst center
+          dy = py - snd center
+          r = sqrt (dx*dx + dy*dy)
+      in if r < radius && r > 0
+         then let factor = 1000 * (1 - r/radius) / r
+              in (dx * factor, dy * factor)
+         else (0, 0)
