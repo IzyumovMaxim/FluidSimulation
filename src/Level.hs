@@ -173,4 +173,4 @@ getBlockColor blockType =
     Dirt -> (0.5, 0.4, 0.3)    -- Brown
     Stone -> (0.3, 0.3, 0.3)   -- Dark Grey
     WaterSource -> (0.3, 0.7, 1.0)  -- Light blue
-    Goal -> (0.6, 0.6, 0.6)    -- Light Grey
+    Goal -> (0.9, 0.9, 0.9)    -- Light Grey
