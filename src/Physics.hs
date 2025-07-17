@@ -50,7 +50,7 @@ getNeighborIndices grid particles idx hVal =
 computeDensityPressureParallel :: World -> OptimizedGrid -> V.Vector Particle -> V.Vector Particle
 computeDensityPressureParallel world grid particles = 
   let indices = [0 .. V.length particles - 1]
-      chunkSize = max 1 (V.length particles `div` 4)
+      chunkSize = max 1 (V.length particles `div` 8)
       chunks = chunksOf chunkSize indices
       processChunk chunk = map (computeDensityPressureForIndex world grid particles) chunk
       results = parMap rseq processChunk chunks
@@ -140,7 +140,7 @@ computeForceContribution world p acc n =
 updatePositionVelocityParallel :: World -> OptimizedGrid -> V.Vector Particle -> V.Vector Particle
 updatePositionVelocityParallel world grid particles =
   let indices = [0 .. V.length particles - 1]
-      chunkSize = max 1 (V.length particles `div` 4)
+      chunkSize = max 1 (V.length particles `div` 8)
       chunks = chunksOf chunkSize indices
       
       processChunk chunk = map (updateSingleParticle world grid particles) chunk
