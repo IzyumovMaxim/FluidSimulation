@@ -3,13 +3,9 @@ Fluid simulation on Haskell, you can adjust parameters of fluid and interact wit
 
 ![Simulation](footage/scene_record.mov)
 
-**Also Swampy crocodile is avaliable as a game mode**
+**Also a level of Swampy the alligator game is avaliable:**
 ![Photo](footage/swampy_gameplay.png)
 
-In this version (stage 1) there is:
-- basic 2D visualisation and modelling;
-- one scene with some shape containing the fluid;
-- easily configurable model (via coefficients and kernel functions).
 
 ## Getting started
 Clone repository
@@ -23,12 +19,15 @@ stack build
 stack exec -- sph-fluid -- +RTS -N8 -s -RTS
 ```
 
+## User guide
+
+
 ## File structure
 ```
 fluid-simulation/
 ├── src/
 │   ├── assets/
-    └── i.png         -- Swampy image🐊
+│   └── i.png         -- Swampy image🐊
 │   ├── Physics.hs    -- SPH calculations
 │   ├── Types.hs      -- Data types
 │   ├── Level.hs      -- Game level with fluid-based puzzle
@@ -37,3 +36,16 @@ fluid-simulation/
 ├── app.cabal         -- Build config
 └── stack.yaml        -- Stack config
 ```
+
+## ChangeLog
+**Stage I**
+- Basic 2D visualisation and modelling;
+- One scene with some shape containing the fluid;
+- Easily configurable model (via coefficients and kernel functions).
+  
+**Stage II**
+- Improved physics (added surface tension);
+- Several fluid simulation scenes: sware, circle, hourglass, windmill;
+- Added one level of game mode: "Where Is My Water?", as a simple fluid-based puzzle;
+- Included optimizations.
+  
