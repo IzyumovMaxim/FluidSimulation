@@ -137,12 +137,6 @@ main :: IO ()
 main = do
   let particleCount = length (particles initialWorld)
   putStrLn $ "Starting optimized SPH simulation with " ++ show particleCount ++ " particles"
-  putStrLn "Optimizations enabled:"
-  putStrLn "  - Parallel computation (4 cores)"
-  putStrLn "  - Vectorized operations"
-  putStrLn "  - Optimized spatial grid"
-  putStrLn "  - Reduced memory allocations"
-  putStrLn ""
   putStrLn "Controls:"
   putStrLn "  R - Reset simulation"
   putStrLn "  Arrow keys - Adjust gravity"
@@ -158,11 +152,6 @@ main = do
   putStrLn "  4 - Switch to Windmill scene"
   putStrLn "  Hold Shift for larger adjustments"
   putStrLn "  Click and drag to interact with particles"
-  putStrLn ""
-  putStrLn "Performance tips:"
-  putStrLn "  - Use 'q' to reduce smoothing radius for better performance"
-  putStrLn "  - Use 'w' to reduce particle count if lagging"
-  putStrLn "  - Keep surface tension low (< 0.01) for stability"
   
   play
     (InWindow "Optimized SPH Fluid Simulation" (800, 800) (100, 100))
