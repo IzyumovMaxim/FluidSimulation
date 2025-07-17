@@ -16,7 +16,7 @@ type OptimizedGrid = IM.IntMap [Int]
 
 -- | Hash function for 2D coordinates to single integer
 hashCoords :: Int -> Int -> Int
-hashCoords x y = x * 73856093 + y * 19349663 
+hashCoords x y = x * 1000 + y
 
 -- | Build spatial grid with particle indices
 buildOptimizedGrid :: Float -> V.Vector Particle -> OptimizedGrid
