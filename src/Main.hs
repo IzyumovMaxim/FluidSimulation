@@ -16,7 +16,7 @@ initialWorld :: Picture -> World
 initialWorld swampyPic = 
   let w = World { particles = []
                , gravity   = (0, -15.0)
-               , mass      = 2.0
+               , mass      = 20.0
                , rho0      = 1000
                , stiffness = 1000
                , viscosity = 15
@@ -26,7 +26,7 @@ initialWorld swampyPic =
                , mouseDown = False
                , scene     = Square
                , windmillAngle = 0
-               , windmillSpeed = 1.5
+               , windmillSpeed = 0.2
                , currentLevel = Nothing
                , gameState = Playing
                , collectedStars = 0
@@ -172,6 +172,10 @@ eventHandler (EventKey (Char c) Down mods _) world
       'P' -> let step = if shift mods == Down then 0.005 else 0.001 in world { surfaceTension = surfaceTension world + step }
       ';' -> let step = if shift mods == Down then 0.005 else 0.001 in world { surfaceTension = max 0 (surfaceTension world - step) }
       ':' -> let step = if shift mods == Down then 0.005 else 0.001 in world { surfaceTension = max 0 (surfaceTension world - step) }
+      '[' -> let step = if shift mods == Down then 0.1 else 1 in world { windmillSpeed = max 0.1 (windmillSpeed world + step) }
+      '{' -> let step = if shift mods == Down then 0.1 else 1 in world { windmillSpeed = max 0.1 (windmillSpeed world + step) }
+      '\''-> let step = if shift mods == Down then 0.1 else 1 in world { windmillSpeed = max 0.1 (windmillSpeed world - step) }
+      '\"'-> let step = if shift mods == Down then 0.1 else 1 in world { windmillSpeed = max 0.1 (windmillSpeed world - step) }
       'q' -> world { h = max 8 (h world - 1) }
       'Q' -> world { h = h world + 1 }
       'w' -> world { particles = take (length (particles world) - 10) (particles world) }
@@ -202,7 +206,7 @@ main = do
   putStrLn ""
   putStrLn "Game modes:"
   putStrLn "  1 - Square fluid simulation"
-  putStrLn "  2 - Hourglass fluid simulation"
+  putStrLn "  2 -  fluid simulation"
   putStrLn "  3 - Ball fluid simulation"
   putStrLn "  4 - Windmill simulation"
   putStrLn "  5 - Puzzle Level (Where's My Water)"
@@ -219,6 +223,7 @@ main = do
   putStrLn "  U/J - Stiffness up/down"
   putStrLn "  I/K - Viscosity up/down"
   putStrLn "  P/; - Surface tension up/down"
+  putStrLn "  [/' - Windmill speed"
   putStrLn "  Q/q - Smoothing radius (affects performance)"
   putStrLn "  W/w - Add/remove particles"
   putStrLn "  Hold Shift for larger adjustments"
