@@ -382,24 +382,40 @@ ballForce world p
 checkMillCollision :: World -> Vector2 -> Vector2 -> (Float, Float, Float, Float)
 checkMillCollision world (x, y) (vx, vy) =
   let angle = windmillAngle world
-      relX = x * cos angle + y * sin angle
-      relY = -x * sin angle + y * cos angle
+      relX = x * cos angle - y * sin angle
+      relY = x * sin angle + y * cos angle
       
-      collideHoriz = abs relY < 5 && abs relX < 60
-      collideVert = abs relX < 5 && abs relY < 60
-      
+      collideHoriz = abs relY < 8 && abs relX < 90
+      collideVert = abs relX < 8 && abs relY < 90
+
       collide = collideHoriz || collideVert
-  in if collide
+      
+  in if collide9
      then
-        let norm = if collideHoriz then (0, signum relY) else (signum relX, 0)
+        let (normX, normY) = 
+              if collideHoriz 
+              then (0, signum relY) 
+              else (signum relX, 0)
+
+            elasticity = 0.7
+            
             worldNormX = normX * cos angle - normY * sin angle
             worldNormY = normX * sin angle + normY * cos angle
-            (normX, normY) = norm
+            
             dotProduct = vx * worldNormX + vy * worldNormY
-            newVx = vx - 1.8 * dotProduct * worldNormX
-            newVy = vy - 1.8 * dotProduct * worldNormY
-            offset = 1.0
+            
+            baseVx = vx - elasticity * dotProduct * worldNormX
+            baseVy = vy - elasticity * dotProduct * worldNormY
+            
+            tangentX = -worldNormY
+            tangentY = worldNormX
+            speedFactor = 1.2 * windmillSpeed world
+            finalVx = baseVx + tangentX * speedFactor
+            finalVy = baseVy + tangentY * speedFactor
+            
+            offset = 15.0
             newX = x + offset * worldNormX
             newY = y + offset * worldNormY
-        in (newX, newVx, newY, newVy)
-     else (x, vx, y, vy)
+            
+        in (newX, newY, finalVx, finalVy)
+     else (x, y, vx, vy)
