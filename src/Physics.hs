@@ -390,7 +390,7 @@ checkMillCollision world (x, y) (vx, vy) =
 
       collide = collideHoriz || collideVert
       
-  in if collide9
+  in if collide
      then
         let (normX, normY) = 
               if collideHoriz 
