@@ -227,8 +227,8 @@ drawContainer world = color white $
         [ lineLoop [(-180,-180), (-180,180), (180,180), (180,-180)]  -- Boundaries
         , translate 0 0 $ rotate (windmillAngle world * 180/pi) $  -- Rotation
             Pictures
-              [ rectangleSolid 120 10   -- Horisontal part
-              , rectangleSolid 10 120    -- Vertical part
+              [ rectangleWire 180 15
+              , rectangleWire 15 180
               ]
         ]
     PuzzleLevel -> Blank  -- Level geometry is drawn separately
