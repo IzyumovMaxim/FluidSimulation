@@ -282,6 +282,7 @@ applyBoundaryConditions world newPos newVel =
             | y > 180  = (180, -abs vy * 0.5)
             | otherwise = (y, vy)
       in ((boundedX, boundedY), (newVx, newVy))
+
     
     Hourglass ->
       let (x, y) = newPos
@@ -340,10 +341,6 @@ applyBoundaryConditions world newPos newVel =
       in ((millX, millY), (millVx, millVy))
 
 
-
-
-
-
 checkTriangleCollisions :: Vector2 -> Vector2 -> (Float, Float, Float, Float)
 checkTriangleCollisions (x, y) (vx, vy) =
   let 
@@ -373,10 +370,9 @@ ballForce world p
           dy = py - snd center
           r = sqrt (dx*dx + dy*dy)
       in if r < radius && r > 0
-         then let factor = 1000 * (1 - r/radius) / r
+         then let factor = 10000 * (1 - r/radius) / r
               in (dx * factor, dy * factor)
          else (0, 0)
-
 
 
 checkMillCollision :: World -> Vector2 -> Vector2 -> (Float, Float, Float, Float)
@@ -396,24 +392,23 @@ checkMillCollision world (x, y) (vx, vy) =
               if collideHoriz 
               then (0, signum relY) 
               else (signum relX, 0)
-
-            elasticity = 0.7
             
             worldNormX = normX * cos angle - normY * sin angle
             worldNormY = normX * sin angle + normY * cos angle
             
             dotProduct = vx * worldNormX + vy * worldNormY
-            
+
+            elasticity = 0.7
             baseVx = vx - elasticity * dotProduct * worldNormX
             baseVy = vy - elasticity * dotProduct * worldNormY
             
             tangentX = -worldNormY
             tangentY = worldNormX
-            speedFactor = 1.2 * windmillSpeed world
+            speedFactor = 0.2 * windmillSpeed world
             finalVx = baseVx + tangentX * speedFactor
             finalVy = baseVy + tangentY * speedFactor
             
-            offset = 15.0
+            offset = 8.0
             newX = x + offset * worldNormX
             newY = y + offset * worldNormY
             
